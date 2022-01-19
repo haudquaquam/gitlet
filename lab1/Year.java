@@ -6,13 +6,13 @@ public class Year {
     /** Return true iff YEAR is a leap year.  */
     static boolean isLeapYear(int year) {
         if (year % 400 == 0) {
-            return True
+            return True;
         }
         else if ((year % 4 == 0) && (year % 100 != 0)) {
-            return True
+            return True;
         }
         else {
-            return False
+            return False;
         }
     }
 
