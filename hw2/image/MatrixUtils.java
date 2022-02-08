@@ -1,5 +1,7 @@
 package image;
 
+import static arrays.Utils.print;
+
 /** Provides a variety of utilities for operating on matrices.
  *  All methods assume that the double[][] arrays provided are rectangular.
  *
@@ -54,20 +56,32 @@ public class MatrixUtils {
      *
      */
 
+    /*public static double get(double[][] e, int r, int c) {
+        double result;
+        try {
+            result = e[r][c];
+        }
+        catch(ArrayIndexOutOfBoundsException e) {
+            result = Double.POSITIVE_INFINITY;
+        }
+        return result;
+    }*/
+
     public static double[][] accumulateVertical(double[][] m) {
         m = copy(m);
 
-        for (int r = 1; r < m.length; r++) {
-            for (int c = 0; c < m[0].length; c++) {
-                double best = Double.POSITIVE_INFINITY;
-                for (int deltaC = -1; deltaC <= 1; deltaC += 1) {
-                    if (get(m, r - 1, c + deltaC) < best) {
-
+        for (int r = 1; r < m.length; r++) {   // loop through all rows besides the first row
+            for (int c = 0; c < m[0].length; c++) { // loop through all columns in the specified row
+                double best = Double.POSITIVE_INFINITY; // set lowest (best) to positive infinity
+                for (int deltaC = -1; deltaC <= 1; deltaC += 1) { // cycles through -1, 0, 1
+                    if (get(m, r - 1, c + deltaC) < best) { // if the specified value above current value is smaller than best
+                        best = get(m, r - 1, c + deltaC);
                     }
                 }
                 m[r][c] += best;
             }
         }
+        
         return m;
     }
 
