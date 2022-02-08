@@ -42,7 +42,6 @@ class Lists {
                 result.tail = new IntListList(); result = result.tail; // current result spot is set to the next result spot // give an empty IntListList to the result.tail so that it is not null
                 runList = new IntList();
                 L = L.tail;
-                // runList = L; // set runList equal to L, the remaining original list
                 runListPointer = runList; // reset runListPointer to runList, so we can set the result.head to runListPointer when done with next run
             }
         }
