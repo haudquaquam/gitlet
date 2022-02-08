@@ -45,17 +45,14 @@ class Arrays {
                     resultIndex++;
                 }
             }
-            print(result);
             return result;
         }
         else if (len == A.length) {
             int[] result = {};
-            print(result);
             return result;
         }
         else {
             return null;
         }
     }
-
 }
