@@ -68,6 +68,11 @@ public class MatrixUtils {
     }*/
 
     public static double[][] accumulateVertical(double[][] m) {
+
+        if (m.length == 0) {
+            return m;
+        }
+
         m = copy(m);
 
         for (int r = 1; r < m.length; r++) {   // loop through all rows besides the first row
@@ -81,7 +86,7 @@ public class MatrixUtils {
                 m[r][c] += best;
             }
         }
-        
+
         return m;
     }
 
@@ -109,11 +114,36 @@ public class MatrixUtils {
      */
 
     public static double[][] accumulate(double[][] m, Orientation orientation) {
-        return null; //your code here
+        if (orientation == Orientation.VERTICAL) {
+            return accumulateVertical(m);
+        }
+        else {
+            return accumulateVertical(createHorizontalCopy(m));
+        }
     }
 
     /** Gets entry of M, unless R or C are out of bounds, then
      *  we return infinity instead. */
+    public static double[][] createHorizontalCopy(double[][] original) {
+        if (original.length == 0) {
+            return original;
+        }
+        double[][] result = new double[original[0].length][original.length];
+        for (int i = 0; i < result.length; i++) {
+            for (int j = 0; j < result[i].length; j++) {
+                result[i][j] = original[j][i];
+            }
+        }
+        for (int i = 0; i < result.length; i++) {
+            System.out.print("{");
+            for (int j = 0; j < result[i].length; j++) {
+                System.out.print(result[i][j] + ", ");
+            }
+            System.out.print("}");
+            System.out.println();
+        }
+        return result;
+    }
 
     private static double get(double[][] m, int r, int c) {
         int width = m[0].length;
