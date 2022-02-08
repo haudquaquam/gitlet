@@ -8,7 +8,7 @@ package lists;
 import image.In;
 
 /** List problem.
- *  @author
+ *  @author Rae Xin
  */
 class Lists {
 

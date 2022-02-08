@@ -5,9 +5,9 @@ import org.junit.Test;
 import static lists.Lists.naturalRuns;
 import static org.junit.Assert.*;
 
-/** FIXME
+/** List utilities testing.
  *
- *  @author FIXME
+ *  @author Rae Xin
  */
 
 public class ListsTest {
