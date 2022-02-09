@@ -118,7 +118,7 @@ public class MatrixUtils {
             return accumulateVertical(m);
         }
         else {
-            return accumulateVertical(createHorizontalCopy(m));
+            return createHorizontalCopy(accumulateVertical(createHorizontalCopy(m)));
         }
     }
 
