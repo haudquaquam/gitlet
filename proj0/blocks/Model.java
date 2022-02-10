@@ -32,6 +32,7 @@ class Model {
         _hand = new ArrayList<>();
         _score = 0;
         _current = _lastHistory = -1;
+        _streakLength = 0;
     }
 
     /** Initializes a copy of MODEL. Does not modify or share structure with
@@ -86,8 +87,8 @@ class Model {
         if (piece.width() > width() || piece.height() > height()) {
             return false;
         }
-        for (int i = 0; i < piece.height(); i++) { // nts: cycles through each column of piece
-            for (int k = 0; k < piece.width(); k++) { // nts: cycles through each row of piece
+        for (int i = 0; i < piece.height(); i++) {
+            for (int k = 0; k < piece.width(); k++) {
                 if (piece.get(i, k)) {
                     if (get(i + row, k + col)) {
                         return false;
@@ -195,6 +196,12 @@ class Model {
                 ncols++;
             }
         }
+        if (nrows > 0 || ncols > 0) {
+            _streakLength++;
+        }
+        else {
+            _streakLength = 0;
+        }
         _score += scoreClearedLines(nrows, ncols);
     }
 
@@ -202,7 +209,10 @@ class Model {
      *  NROWS is the number of rows cleared and NCOLS is the number
      *  of columns cleared. */
     private int scoreClearedLines(int nrows, int ncols) {
-        return nrows + ncols;
+        int score = 0;
+        score += (((nrows * _cells[0].length) + (ncols * _cells.length)) * _streakLength);
+        score += ((nrows * _cells[0].length) + (ncols * _cells.length) - (nrows * ncols));
+        return score;
     }
 
     /** Return true iff the current hand is empty (i.e., piece(k) is null
@@ -219,7 +229,7 @@ class Model {
 
     /** Empty all Pieces from the current hand. */
     void clearHand() {
-        _hand = null;
+        _hand = new ArrayList<>();
     }
 
     /** Add PIECE to the current hand.  Assumes PIECE is not null. */
@@ -246,7 +256,8 @@ class Model {
      *  Does nothing if at the initial board. */
     void undo() {
         if (_current > 0) {
-            return; // FIXME
+            _current--;
+            _history.get(_current).restoreState();
         }
     }
 
@@ -254,14 +265,21 @@ class Model {
      *  there are no available undone boards. */
     void redo() {
         if (_current < _lastHistory) {
-            return; // FIXME
+            _current++;
+            _history.get(_current).restoreState();
         }
     }
 
     /** Returns true if this puzzle round is over because the hand is not empty
      *  but contains only Pieces that cannot be placed.  */
     boolean roundOver() {
-        return true; // FIXME
+        boolean overFlag = true;
+        for (int i = 0; i < _hand.size(); i++) {
+            if (placeable(i)) {
+                overFlag = false;
+            }
+        }
+        return overFlag;
     }
 
     /** Returns true iff (ROW, COL) is a valid cell location. */
