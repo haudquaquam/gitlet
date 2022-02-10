@@ -109,7 +109,7 @@ class Model {
         }
         for (int i = 0; i <= (height() - piece.height()); i++) {
             for (int k = 0; k <= (width() - piece.width()); k++) {
-                if (placeable(piece, i, k) == true) {
+                if (placeable(piece, i, k)) {
                     return true;
                 }
             }
@@ -211,9 +211,9 @@ class Model {
      *  of columns cleared. */
     private int scoreClearedLines(int nrows, int ncols) {
         int score = 0;
-        int scoreComponent = (nrows * _cells[0].length) + (ncols * _cells.length);
-        score += (scoreComponent * _streakLength);
-        score += (scoreComponent - (nrows * ncols));
+        int totalCells = (nrows * _cells[0].length) + (ncols * _cells.length);
+        score += (totalCells * _streakLength);
+        score += (totalCells - (nrows * ncols));
         return score;
     }
 
