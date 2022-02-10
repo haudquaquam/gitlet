@@ -101,18 +101,20 @@ class Model {
 
     /** Return true iff PIECE may be added to the board at some position. */
     boolean placeable(Piece piece) {
+        if (piece == null) {
+            return false;
+        }
         if (piece.width() > width() || piece.height() > height()) {
             return false;
         }
-        boolean flag = false;
         for (int i = 0; i <= (height() - piece.height()); i++) {
             for (int k = 0; k <= (width() - piece.width()); k++) {
                 if (placeable(piece, i, k) == true) {
-                    flag = true;
+                    return true;
                 }
             }
         }
-        return flag;
+        return false;
     }
 
     /** Return true iff piece(K) may be added to the board with its
@@ -198,8 +200,7 @@ class Model {
         }
         if (nrows > 0 || ncols > 0) {
             _streakLength++;
-        }
-        else {
+        } else {
             _streakLength = 0;
         }
         _score += scoreClearedLines(nrows, ncols);
@@ -210,8 +211,9 @@ class Model {
      *  of columns cleared. */
     private int scoreClearedLines(int nrows, int ncols) {
         int score = 0;
-        score += (((nrows * _cells[0].length) + (ncols * _cells.length)) * _streakLength);
-        score += ((nrows * _cells[0].length) + (ncols * _cells.length) - (nrows * ncols));
+        int scoreComponent = (nrows * _cells[0].length) + (ncols * _cells.length);
+        score += (scoreComponent * _streakLength);
+        score += (scoreComponent - (nrows * ncols));
         return score;
     }
 
