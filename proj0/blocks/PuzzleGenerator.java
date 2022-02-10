@@ -5,7 +5,7 @@ import java.util.Random;
 import static blocks.Utils.*;
 
 /** A creator of random Blocks puzzles.
- *  @author
+ *  @author Rae Xin
  */
 class PuzzleGenerator implements PuzzleSource {
 
@@ -21,7 +21,10 @@ class PuzzleGenerator implements PuzzleSource {
     public boolean deal(Model model, int handSize) {
         assert handSize > 0;
         model.clearHand();
-        // FIXME
+        for (int i  = 0; i < handSize; i++) {
+            int randomIndex = _random.nextInt(PIECES.length + 1);
+            model.deal(PIECES[randomIndex]);
+        }
         return true;
     }
 
