@@ -5,14 +5,24 @@
  */
 public class SubstringFilter extends TableFilter {
 
+    private String _subStr;
+    private String _colName;
+    private Table _input;
+    private int _colIndex;
+
     public SubstringFilter(Table input, String colName, String subStr) {
         super(input);
-        // FIXME: Add your code here.
+        _subStr = subStr;
+        _colName = colName;
+        _input = input;
+        _colIndex = _input.colNameToIndex(_colName);
     }
 
     @Override
     protected boolean keep() {
-        // FIXME: Replace this line with your code.
+        if (candidateNext().getValue(_colIndex).contains(_subStr)) {
+            return true;
+        }
         return false;
     }
 

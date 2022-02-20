@@ -30,4 +30,7 @@ public class BerkeleyStudent extends Student {
         System.out.println("WOAH, you made the Blocks game??");
     }
 
+    public void playGame() {
+        System.out.print("I love Clash of Clans!");
+    }
 }

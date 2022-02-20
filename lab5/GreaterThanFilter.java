@@ -5,16 +5,26 @@
  */
 public class GreaterThanFilter extends TableFilter {
 
+    private String _ref;
+    private String _colName;
+    private Table _input;
+    private int _colIndex;
+
     public GreaterThanFilter(Table input, String colName, String ref) {
         super(input);
-        // FIXME: Add your code here.
+        _colName = colName;
+        _input = input;
+        _colIndex = _input.colNameToIndex(_colName);
+        _ref = ref;
     }
 
     @Override
     protected boolean keep() {
-        // FIXME: Replace this line with your code.
+        if (candidateNext().getValue(_colIndex).compareTo(_ref) > 0) {
+            return true;
+        }
         return false;
     }
 
-    // FIXME: Add instance variables?
+
 }

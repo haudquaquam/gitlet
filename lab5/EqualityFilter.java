@@ -5,17 +5,24 @@
  */
 public class EqualityFilter extends TableFilter {
 
+    private String _match;
+    private String _colName;
+    private Table _input;
+    private int _colIndex;
+
     public EqualityFilter(Table input, String colName, String match) {
         super(input);
-        // FIXME: Add your code here.
-
+        _match = match;
+        _colName = colName;
+        _input = input;
+        _colIndex = _input.colNameToIndex(_colName);
     }
 
     @Override
     protected boolean keep() {
-        // FIXME: Replace this line with your code.
+        if (candidateNext().getValue(_colIndex).equals(_match)) {
+            return true;
+        }
         return false;
     }
-
-    // FIXME: Add instance variables?
 }
