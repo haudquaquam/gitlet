@@ -153,6 +153,13 @@ public abstract class PermutationTest {
         assertEquals(2, perm2.invert(-999));
     }
 
+    @Test
+    public void checkDerangement() {
+        assertEquals(true, perm1.derangement());
+        assertEquals(false, perm2.derangement());
+        assertEquals(true, permEmpty.derangement());
+    }
+
 
 
     // FIXME: Add tests here that pass on a correct Permutation and fail on buggy Permutations.
