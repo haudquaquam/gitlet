@@ -103,6 +103,8 @@ public abstract class PermutationTest {
     public Permutation whiteSpacePerm = getNewPermutation("  (AB) (DE)  (F)       (G) ", whiteSpaceAlpha);
     public Alphabet emptyAlpha = getNewAlphabet("");
     public Permutation permEmpty = getNewPermutation("", emptyAlpha);
+    public Alphabet derangementCheckAlpha = getNewAlphabet("ABCD");
+    public Permutation derangementCheckPerm = getNewPermutation("(A) (B) (C) (D)", derangementCheckAlpha);
 
     @Test(expected = EnigmaException.class)
     public void testNotInAlphabet() {
@@ -190,5 +192,6 @@ public abstract class PermutationTest {
         assertEquals(true, permEmpty.derangement());
         assertEquals(false, permBig.derangement());
         assertEquals(false, whiteSpacePerm.derangement());
+        assertEquals(false, derangementCheckPerm.derangement());
     }
 }
