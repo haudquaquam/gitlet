@@ -131,7 +131,7 @@ public abstract class PermutationTest {
         assertEquals(1, perm2.permute(4));
         assertEquals('Y', perm2.permute('Y'));
         assertEquals(2, perm2.permute(-999));
-        assertEquals(1, perm2.permute(-1001));
+        assertEquals(1, perm2.permute(-1000));
     }
 
     @Test
