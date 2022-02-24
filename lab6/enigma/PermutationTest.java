@@ -14,7 +14,7 @@ import static enigma.TestUtils.*;
  * this class concrete by removing the 4 abstract keywords and implementing the
  * 3 abstract methods.
  *
- *  @author
+ *  @author Rae Xin
  */
 public abstract class PermutationTest {
 
@@ -81,6 +81,61 @@ public abstract class PermutationTest {
         Permutation perm = getNewPermutation("", alpha);
         checkPerm("identity", UPPER_STRING, UPPER_STRING, perm, alpha);
     }
+
+    @Test
+    public void testInvertChar() {
+        Permutation p = getNewPermutation("(BACD)", getNewAlphabet("ABCD"));
+        assertEquals('B', p.invert('A'));
+        assertEquals('A', p.invert('C'));
+        assertEquals('D', p.invert('B'));
+        assertEquals('C', p.invert('D'));
+    }
+
+    @Test(expected = EnigmaException.class)
+    public void testNotInAlphabet() {
+        Permutation p = getNewPermutation("(BACD)", getNewAlphabet("ABCD"));
+        p.invert('F');
+    }
+
+    public Alphabet alpha1 = getNewAlphabet("ABCDEFGH");
+    public Permutation perm1 = getNewPermutation("(ABCD)(EFGH)", alpha1);
+    public Alphabet alpha2 = getNewAlphabet("XYZ");
+    public Permutation perm2 = getNewPermutation("(XZ)", alpha2);
+
+    @Test
+    public void checkSize() {
+        assertEquals(8, perm1.size());
+        assertEquals(3, perm2.size());
+    }
+
+    @Test
+    public void checkPermute() {
+        assertEquals(1, perm1.permute(0));
+        assertEquals('B', perm1.permute('A'));
+        assertEquals(0, perm1.permute(3));
+        assertEquals('A', perm1.permute('D'));
+        assertEquals(6, perm1.permute(5));
+        assertEquals('G', perm1.permute('F'));
+        assertEquals(4, perm1.permute(7));
+        assertEquals('E', perm1.permute('H'));
+        assertEquals(2, perm2.permute(4));
+        assertEquals('Y', perm2.permute('Y'));
+    }
+
+    @Test
+    public void checkInvert() {
+        assertEquals(0, perm1.invert(1));
+        assertEquals('A', perm1.invert('B'));
+        assertEquals(3, perm1.invert(0));
+        assertEquals('D', perm1.invert('A'));
+        assertEquals(5, perm1.invert(6));
+        assertEquals('F', perm1.invert('G'));
+        assertEquals(7, perm1.invert(4));
+        assertEquals('H', perm1.invert('E'));
+        assertEquals(1, perm2.invert(2));
+        assertEquals('Y', perm2.invert('Y'));
+    }
+
 
     // FIXME: Add tests here that pass on a correct Permutation and fail on buggy Permutations.
 }
