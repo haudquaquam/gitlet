@@ -118,7 +118,7 @@ public abstract class PermutationTest {
         assertEquals('G', perm1.permute('F'));
         assertEquals(4, perm1.permute(7));
         assertEquals('E', perm1.permute('H'));
-        assertEquals(2, perm2.permute(4));
+        assertEquals(1, perm2.permute(4));
         assertEquals('Y', perm2.permute('Y'));
     }
 
@@ -132,7 +132,7 @@ public abstract class PermutationTest {
         assertEquals('F', perm1.invert('G'));
         assertEquals(7, perm1.invert(4));
         assertEquals('H', perm1.invert('E'));
-        assertEquals(1, perm2.invert(2));
+        assertEquals(4, perm2.invert(1));
         assertEquals('Y', perm2.invert('Y'));
     }
 
