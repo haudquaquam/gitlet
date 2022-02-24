@@ -91,21 +91,31 @@ public abstract class PermutationTest {
         assertEquals('C', p.invert('D'));
     }
 
+
+
+    public Alphabet alpha1 = getNewAlphabet("ABCDEFGH");
+    public Permutation perm1 = getNewPermutation("(ABCD)(EFGH)", alpha1);
+    public Alphabet alpha2 = getNewAlphabet("XYZ");
+    public Permutation perm2 = getNewPermutation("(XZ)", alpha2);
+    public Alphabet emptyAlpha = getNewAlphabet("");
+    public Permutation permEmpty = getNewPermutation("", emptyAlpha);
+
     @Test(expected = EnigmaException.class)
     public void testNotInAlphabet() {
         Permutation p = getNewPermutation("(BACD)", getNewAlphabet("ABCD"));
         p.invert('F');
     }
 
-    public Alphabet alpha1 = getNewAlphabet("ABCDEFGH");
-    public Permutation perm1 = getNewPermutation("(ABCD)(EFGH)", alpha1);
-    public Alphabet alpha2 = getNewAlphabet("XYZ");
-    public Permutation perm2 = getNewPermutation("(XZ)", alpha2);
+    @Test(expected = EnigmaException.class)
+    public void testNotInAlphabetPermute() {
+        perm1.permute('0');
+    }
 
     @Test
     public void checkSize() {
         assertEquals(8, perm1.size());
         assertEquals(3, perm2.size());
+        assertEquals(0, permEmpty.size());
     }
 
     @Test
@@ -120,6 +130,8 @@ public abstract class PermutationTest {
         assertEquals('E', perm1.permute('H'));
         assertEquals(1, perm2.permute(4));
         assertEquals('Y', perm2.permute('Y'));
+        assertEquals(2, perm2.permute(-999));
+        assertEquals(1, perm2.permute(-1001));
     }
 
     @Test
@@ -134,7 +146,10 @@ public abstract class PermutationTest {
         assertEquals('H', perm1.invert('E'));
         assertEquals(1, perm2.invert(1));
         assertEquals('Y', perm2.invert('Y'));
+        assertEquals(0, perm1.invert(0));
+        assertEquals(2, perm2.invert(-999));
     }
+
 
 
     // FIXME: Add tests here that pass on a correct Permutation and fail on buggy Permutations.
