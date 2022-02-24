@@ -51,4 +51,91 @@ public class PermutationTest {
         checkPerm("identity", UPPER_STRING, UPPER_STRING);
     }
 
+
+    @Test
+    public void testInvertChar() {
+        Permutation p = new Permutation("(BACD)", alpha1);
+        assertEquals('B', p.invert('A'));
+        assertEquals('A', p.invert('C'));
+        assertEquals('D', p.invert('B'));
+        assertEquals('C', p.invert('D'));
+    }
+
+
+
+    public Alphabet alpha1 = new Alphabet("ABCDEFGH");
+    public Permutation perm1 = new Permutation("(ABCD)(EFGH)", alpha1);
+    public Alphabet alpha2 = new Alphabet("XYZ");
+    public Permutation perm2 = new Permutation("(XZ)", alpha2);
+    public Alphabet emptyAlpha = new Alphabet("");
+    public Permutation permEmpty = new Permutation("", emptyAlpha);
+
+    @Test(expected = EnigmaException.class)
+    public void testNotInAlphabet() {
+        Permutation p = new Permutation("(BACD)", new Alphabet("ABCD"));
+        p.invert('F');
+    }
+
+    @Test(expected = EnigmaException.class)
+    public void testNotInAlphabetPermute() {
+        perm1.permute('0');
+    }
+
+    @Test
+    public void checkSize() {
+        assertEquals(8, perm1.size());
+        assertEquals(3, perm2.size());
+        assertEquals(0, permEmpty.size());
+    }
+
+    @Test
+    public void checkPermute() {
+        assertEquals(1, perm1.permute(0));
+        assertEquals('B', perm1.permute('A'));
+        assertEquals(0, perm1.permute(3));
+        assertEquals('A', perm1.permute('D'));
+        assertEquals(6, perm1.permute(5));
+        assertEquals('G', perm1.permute('F'));
+        assertEquals(4, perm1.permute(7));
+        assertEquals('E', perm1.permute('H'));
+        assertEquals(1, perm2.permute(4));
+        assertEquals('Y', perm2.permute('Y'));
+
+        assertEquals(2, perm2.permute(-999));
+        assertEquals(1, perm2.permute(-1001));
+    }
+
+    @Test
+    public void checkInvert() {
+        assertEquals(0, perm1.invert(1));
+        assertEquals('A', perm1.invert('B'));
+        assertEquals(3, perm1.invert(0));
+        assertEquals('D', perm1.invert('A'));
+        assertEquals(5, perm1.invert(6));
+        assertEquals('F', perm1.invert('G'));
+        assertEquals(7, perm1.invert(4));
+        assertEquals('H', perm1.invert('E'));
+        assertEquals(1, perm2.invert(1));
+        assertEquals('Y', perm2.invert('Y'));
+
+        assertEquals(3, perm1.invert(8));
+        assertEquals(3, perm1.invert(-64));
+        assertEquals(2, perm2.invert(-999));
+    }
+
+    @Test
+    public void alphabetTest() {
+        assertEquals(new Alphabet("ABCDEFGH"), perm1.alphabet());
+        assertEquals(new Alphabet("XYZ"), perm2.alphabet());
+        assertEquals(new Alphabet(""), permEmpty.alphabet());
+    }
+
+    @Test
+    public void checkDerangement() {
+        assertEquals(true, perm1.derangement());
+        assertEquals(false, perm2.derangement());
+        assertEquals(true, permEmpty.derangement());
+    }
+}
+
 }
