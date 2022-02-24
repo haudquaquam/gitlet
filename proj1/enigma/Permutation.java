@@ -53,8 +53,11 @@ class Permutation {
             ArrayList<Integer> currentCycleIndexList = new ArrayList<>();
 
             for (int k = 0; k < cycleString.length(); k++) {
-                assert(_alphabet.contains(cycleString.charAt(k)));
-                currentCycleIndexList.add(_alphabet.toInt(cycleString.charAt(k)));
+                if (_alphabet.contains(cycleString.charAt(k))) {
+                    currentCycleIndexList.add(_alphabet.toInt(cycleString.charAt(k)));
+                } else {
+                    throw new EnigmaException("Cycle contains letters not in alphabet");
+                }
             }
 
             _cycleIndexList.add(currentCycleIndexList);
@@ -133,6 +136,11 @@ class Permutation {
     /** Return the result of applying this permutation to the index of P
      *  in ALPHABET, and converting the result to a character of ALPHABET. */
     char permute(char p) {
+
+        if (!_alphabet.contains(p)) {
+            throw new EnigmaException("Specified character \"%p\" is not in alphabet!");
+        }
+
         for (int i = 0; i < _cycleList.size(); i++) {
             String currentCycleString = _cycleList.get(i);
             int indexOfP = currentCycleString.indexOf(p);
@@ -149,6 +157,11 @@ class Permutation {
 
     /** Return the result of applying the inverse of this permutation to C. */
     char invert(char c) {
+
+        if (!_alphabet.contains(c)) {
+            throw new EnigmaException("Specified character \"%c\" is not in alphabet!");
+        }
+
         for (int i = 0; i < _cycleList.size(); i++) {
             String currentCycleString = _cycleList.get(i);
             int indexOfC = currentCycleString.indexOf(c);
