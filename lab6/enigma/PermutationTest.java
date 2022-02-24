@@ -100,7 +100,7 @@ public abstract class PermutationTest {
     public Alphabet alphaBig = getNewAlphabet("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890");
     public Permutation permBig = getNewPermutation("(AaBbCcDdEe)  (FGHI) (JKLmnopq)(RSTUV12345) (0)", alphaBig);
     public Alphabet whiteSpaceAlpha = getNewAlphabet("ABCDEFGHIJK");
-    public Permutation whiteSpacePerm = getNewPermutation("  (AB  ) (    D    E)  (      F      )    (  G ) ", whiteSpaceAlpha);
+    public Permutation whiteSpacePerm = getNewPermutation("  (AB) (DE)  (F)       (G) ", whiteSpaceAlpha);
     public Alphabet emptyAlpha = getNewAlphabet("");
     public Permutation permEmpty = getNewPermutation("", emptyAlpha);
 
