@@ -61,8 +61,6 @@ public class PermutationTest {
         assertEquals('C', p.invert('D'));
     }
 
-
-
     public Alphabet alpha1 = new Alphabet("ABCDEFGH");
     public Permutation perm1 = new Permutation("(ABCD)(EFGH)", alpha1);
     public Alphabet alpha2 = new Alphabet("XYZ");

@@ -186,6 +186,9 @@ class Permutation {
     boolean derangement() {
         int alphaSum = 0;
         for (int i = 0; i < _cycleList.size(); i++) {
+            if (_cycleList.get(i).length() == 1) {
+                return false;
+            }
             alphaSum += _cycleList.get(i).length();
         }
         return (alphaSum == _alphabet.size());

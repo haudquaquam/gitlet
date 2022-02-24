@@ -97,6 +97,10 @@ public abstract class PermutationTest {
     public Permutation perm1 = getNewPermutation("(ABCD)(EFGH)", alpha1);
     public Alphabet alpha2 = getNewAlphabet("XYZ");
     public Permutation perm2 = getNewPermutation("(XZ)", alpha2);
+    public Alphabet alphaBig = getNewAlphabet("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890");
+    public Permutation permBig = getNewPermutation("(AaBbCcDdEe)  (FGHI) (JKLmnopq)(RSTUV12345) (0)", alphaBig);
+    public Alphabet whiteSpaceAlpha = getNewAlphabet("ABCDEFGHIJK");
+    public Permutation whiteSpacePerm = getNewPermutation("  (AB  ) (    D    E)  (      F      )    (  G ) ", whiteSpaceAlpha);
     public Alphabet emptyAlpha = getNewAlphabet("");
     public Permutation permEmpty = getNewPermutation("", emptyAlpha);
 
@@ -116,6 +120,8 @@ public abstract class PermutationTest {
         assertEquals(8, perm1.size());
         assertEquals(3, perm2.size());
         assertEquals(0, permEmpty.size());
+        assertEquals(62, permBig.size());
+        assertEquals(11, whiteSpacePerm.size());
     }
 
     @Test
@@ -133,6 +139,14 @@ public abstract class PermutationTest {
 
         assertEquals(2, perm2.permute(-999));
         assertEquals(1, perm2.permute(-1001));
+
+        assertEquals(61, permBig.permute(61));
+        assertEquals('b', permBig.permute('B'));
+        assertEquals(26, permBig.permute(0));
+        assertEquals('0', permBig.permute('0'));
+
+        assertEquals(4, whiteSpacePerm.permute(3));
+        assertEquals('E', whiteSpacePerm.permute('D'));
     }
 
     @Test
@@ -151,6 +165,15 @@ public abstract class PermutationTest {
         assertEquals(3, perm1.invert(8));
         assertEquals(3, perm1.invert(-64));
         assertEquals(2, perm2.invert(-999));
+
+        assertEquals(61, permBig.invert(61));
+        assertEquals('B', permBig.invert('b'));
+        assertEquals(0, permBig.invert(26));
+        assertEquals('0', permBig.invert('0'));
+
+        assertEquals(3, whiteSpacePerm.invert(4));
+        assertEquals('D', whiteSpacePerm.invert('E'));
+
     }
 
     @Test
@@ -165,5 +188,7 @@ public abstract class PermutationTest {
         assertEquals(true, perm1.derangement());
         assertEquals(false, perm2.derangement());
         assertEquals(true, permEmpty.derangement());
+        assertEquals(false, permBig.derangement());
+        assertEquals(false, whiteSpacePerm.derangement());
     }
 }
