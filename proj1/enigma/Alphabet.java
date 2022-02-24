@@ -29,13 +29,7 @@ class Alphabet {
 
     /** Returns true if CH is in this alphabet. */
     boolean contains(char ch) {
-        boolean flag = false;
-        for (int i = 0; i < _alphabetHashMap.size(); i++) {
-            if (ch == _alphabetHashMap.get(i)) {
-                flag = true;
-            }
-        }
-        return flag;
+        return _alphabetHashMap.containsValue(ch);
     }
 
     /** Returns character number INDEX in the alphabet, where

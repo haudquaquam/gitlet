@@ -37,6 +37,9 @@ public class AlphabetTest {
         assertEquals('h', lowerCaseAlpha.toChar(7));
         assertEquals('z', lowerCaseAlpha.toChar(25));
         assertEquals('q', lowerCaseAlpha.toChar(16));
+
+        assertEquals('!', randomAlpha.toChar(26));
+        assertEquals('h', randomAlpha.toChar(10));
     }
 
     @Test
@@ -45,6 +48,11 @@ public class AlphabetTest {
         assertEquals(true, lowerCaseAlpha.contains('a'));
         assertEquals(true, lowerCaseAlpha.contains('z'));
         assertEquals(false, lowerCaseAlpha.contains('3'));
+
+        assertEquals(false, emptyAlpha.contains('3'));
+
+        assertEquals(false, randomAlpha.contains('?'));
+        assertEquals(true, randomAlpha.contains('R'));
     }
 
 }
