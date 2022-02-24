@@ -154,13 +154,16 @@ public abstract class PermutationTest {
     }
 
     @Test
+    public void alphabetTest() {
+        assertEquals(getNewAlphabet("ABCDEFGH"), perm1.alphabet());
+        assertEquals(getNewAlphabet("XYZ"), perm2.alphabet());
+        assertEquals(getNewAlphabet(""), permEmpty.alphabet());
+    }
+
+    @Test
     public void checkDerangement() {
         assertEquals(true, perm1.derangement());
         assertEquals(false, perm2.derangement());
         assertEquals(true, permEmpty.derangement());
     }
-
-
-
-    // FIXME: Add tests here that pass on a correct Permutation and fail on buggy Permutations.
 }
