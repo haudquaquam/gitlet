@@ -10,8 +10,7 @@ class Rotor {
         _name = name;
         _permutation = perm;
 
-        _settingPositionInt = 0;
-        _settingPositionChar = alphabet().toChar(0);
+        set(0);
         // FIXME
     }
 
@@ -65,7 +64,7 @@ class Rotor {
     /** Return the conversion of P (an integer in the range 0..size()-1)
      *  according to my permutation. */
     int convertForward(int p) {
-        int result = _permutation.permute(p + _settingPositionInt);
+        int result = permutation().permute(p + _settingPositionInt);
         if (result - _settingPositionInt < 0) {
             int index = alphabet().size() - (_settingPositionInt - result);
             result = index;
@@ -81,7 +80,7 @@ class Rotor {
     /** Return the conversion of E (an integer in the range 0..size()-1)
      *  according to the inverse of my permutation. */
     int convertBackward(int e) {
-        int result = _permutation.permute(e - _settingPositionInt);
+        int result = _permutation.invert(e - _settingPositionInt);
         if (result + _settingPositionInt >= alphabet().size()) {
             int index = (result + _settingPositionInt) - alphabet().size();
             result = index;
@@ -121,9 +120,9 @@ class Rotor {
     /** The permutation implemented by this rotor in its 0 position. */
     private Permutation _permutation;
 
-    public String _notches;
-    public char _settingPositionChar;
-    public int _settingPositionInt;
+    private String _notches;
+    private char _settingPositionChar;
+    private int _settingPositionInt;
     // FIXME: ADDITIONAL FIELDS HERE, AS NEEDED
 
 }

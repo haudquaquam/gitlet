@@ -36,5 +36,8 @@ class MovingRotor extends Rotor {
     }
 
     // FIXME: ADDITIONAL FIELDS HERE, AS NEEDED
+    private String _notches;
+    private char _settingPositionChar;
+    private int _settingPositionInt;
 
 }

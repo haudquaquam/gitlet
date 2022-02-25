@@ -14,5 +14,8 @@ class FixedRotor extends Rotor {
         set(0);
     }
 
-    // FIXME ?
+    @Override
+    void advance() {
+
+    }
 }
