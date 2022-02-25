@@ -1,6 +1,5 @@
 package enigma;
 
-import org.checkerframework.checker.units.qual.A;
 import org.junit.Test;
 import org.junit.Rule;
 import org.junit.rules.Timeout;
@@ -55,64 +54,66 @@ public class PermutationTest {
 
     @Test
     public void testInvertChar() {
-        Permutation p = new Permutation("(BACD)", alpha1);
+        Permutation p = new Permutation("(BACD)", simpleAlpha);
         assertEquals('B', p.invert('A'));
         assertEquals('A', p.invert('C'));
         assertEquals('D', p.invert('B'));
         assertEquals('C', p.invert('D'));
     }
 
-    public Alphabet alpha1 = new Alphabet("ABCDEFGH");
-    public Permutation perm1 = new Permutation("(ABCD)(EFGH)", alpha1);
-    public Alphabet alpha2 = new Alphabet("XYZ");
-    public Permutation perm2 = new Permutation("(XZ)", alpha2);
+    public Alphabet simpleAlpha = new Alphabet("ABCDEFGH");
+    public Permutation simplePerm = new Permutation("(ABCD)(EFGH)", simpleAlpha);
+    public Alphabet shortAlpha = new Alphabet("XYZ");
+    public Permutation shortPerm = new Permutation("(XZ)", shortAlpha);
     public Alphabet emptyAlpha = new Alphabet("");
-    public Permutation permEmpty = new Permutation("", emptyAlpha);
-    public Alphabet alphaBig = new Alphabet("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890");
-    public Permutation permBig = new Permutation("(AaBbCcDdEe)  (FGHI) (JKLmnopq)(RSTUV12345) (0)", alphaBig);
+    public Permutation emptyPerm = new Permutation("", emptyAlpha);
+    public Alphabet bigAlpha = new Alphabet("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890");
+    public Permutation bigPerm = new Permutation("(AaBbCcDdEe)  (FGHI) (JKLmnopq)(RSTUV12345) (0)", bigAlpha);
     public Alphabet whiteSpaceAlpha = new Alphabet("ABCDEFGHIJK");
-    public Permutation whiteSpacePerm = new Permutation("  (AB) (DE)  (F)       (G) ", whiteSpaceAlpha);
-
-    @Test(expected = EnigmaException.class)
-    public void testNotInAlphabet() {
-        Permutation p = new Permutation("(BACD)", new Alphabet("ABCD"));
-        p.invert('F');
-    }
+    public Permutation whiteSpacePerm = new Permutation("  (AB) (DE)  (F)    (G) ", whiteSpaceAlpha);
+    public Alphabet derangementCheckAlpha = new Alphabet("ABCD");
+    public Permutation derangementCheckPerm = new Permutation("(A) (B) (C) (D)", derangementCheckAlpha);
 
     @Test(expected = EnigmaException.class)
     public void testNotInAlphabetPermute() {
-        perm1.permute('0');
+        simplePerm.permute('i');
+    }
+
+    @Test(expected = EnigmaException.class)
+    public void testNotInAlphabetInvert() {
+        simplePerm.invert('9');
     }
 
     @Test
     public void checkSize() {
-        assertEquals(8, perm1.size());
-        assertEquals(3, perm2.size());
-        assertEquals(0, permEmpty.size());
-        assertEquals(62, permBig.size());
+        assertEquals(8, simplePerm.size());
+        assertEquals(3, shortPerm.size());
+        assertEquals(0, emptyPerm.size());
+        assertEquals(62, bigPerm.size());
         assertEquals(11, whiteSpacePerm.size());
+        assertEquals(4, derangementCheckPerm.size());
     }
 
     @Test
     public void checkPermute() {
-        assertEquals(1, perm1.permute(0));
-        assertEquals('B', perm1.permute('A'));
-        assertEquals(0, perm1.permute(3));
-        assertEquals('A', perm1.permute('D'));
-        assertEquals(6, perm1.permute(5));
-        assertEquals('G', perm1.permute('F'));
-        assertEquals(4, perm1.permute(7));
-        assertEquals('E', perm1.permute('H'));
-        assertEquals(1, perm2.permute(4));
-        assertEquals('Y', perm2.permute('Y'));
+        assertEquals(1, simplePerm.permute(0));
+        assertEquals('C', simplePerm.permute('B'));
+        assertEquals(0, simplePerm.permute(3));
+        assertEquals('A', simplePerm.permute('D'));
+        assertEquals(6, simplePerm.permute(5));
+        assertEquals('G', simplePerm.permute('F'));
+        assertEquals(4, simplePerm.permute(7));
+        assertEquals('E', simplePerm.permute('H'));
+        assertEquals(1, shortPerm.permute(4));
+        assertEquals('Y', shortPerm.permute('Y'));
 
-        assertEquals(2, perm2.permute(-999));
-        assertEquals(1, perm2.permute(-1001));
+        assertEquals(2, shortPerm.permute(-666));
+        assertEquals(1, shortPerm.permute(-1001));
 
-        assertEquals(61, permBig.permute(61));
-        assertEquals('b', permBig.permute('B'));
-        assertEquals(26, permBig.permute(0));
-        assertEquals('0', permBig.permute('0'));
+        assertEquals(61, bigPerm.permute(61));
+        assertEquals('b', bigPerm.permute('B'));
+        assertEquals(26, bigPerm.permute(0));
+        assertEquals('0', bigPerm.permute('0'));
 
         assertEquals(4, whiteSpacePerm.permute(3));
         assertEquals('E', whiteSpacePerm.permute('D'));
@@ -120,25 +121,25 @@ public class PermutationTest {
 
     @Test
     public void checkInvert() {
-        assertEquals(0, perm1.invert(1));
-        assertEquals('A', perm1.invert('B'));
-        assertEquals(3, perm1.invert(0));
-        assertEquals('D', perm1.invert('A'));
-        assertEquals(5, perm1.invert(6));
-        assertEquals('F', perm1.invert('G'));
-        assertEquals(7, perm1.invert(4));
-        assertEquals('H', perm1.invert('E'));
-        assertEquals(1, perm2.invert(1));
-        assertEquals('Y', perm2.invert('Y'));
+        assertEquals(0, simplePerm.invert(1));
+        assertEquals('A', simplePerm.invert('B'));
+        assertEquals(3, simplePerm.invert(0));
+        assertEquals('D', simplePerm.invert('A'));
+        assertEquals(5, simplePerm.invert(6));
+        assertEquals('F', simplePerm.invert('G'));
+        assertEquals(7, simplePerm.invert(4));
+        assertEquals('H', simplePerm.invert('E'));
+        assertEquals(1, shortPerm.invert(1));
+        assertEquals('Y', shortPerm.invert('Y'));
 
-        assertEquals(3, perm1.invert(8));
-        assertEquals(3, perm1.invert(-64));
-        assertEquals(2, perm2.invert(-999));
+        assertEquals(3, simplePerm.invert(24));
+        assertEquals(3, simplePerm.invert(-888));
+        assertEquals(2, shortPerm.invert(-666));
 
-        assertEquals(61, permBig.invert(61));
-        assertEquals('B', permBig.invert('b'));
-        assertEquals(0, permBig.invert(26));
-        assertEquals('0', permBig.invert('0'));
+        assertEquals(61, bigPerm.invert(61));
+        assertEquals('B', bigPerm.invert('b'));
+        assertEquals(0, bigPerm.invert(26));
+        assertEquals('0', bigPerm.invert('0'));
 
         assertEquals(3, whiteSpacePerm.invert(4));
         assertEquals('D', whiteSpacePerm.invert('E'));
@@ -146,20 +147,14 @@ public class PermutationTest {
 
     }
 
-    /*@Test
-    public void alphabetTest() {
-        assertEquals(new Alphabet("ABCDEFGH"), perm1.alphabet());
-        assertEquals(new Alphabet("XYZ"), perm2.alphabet());
-        assertEquals(new Alphabet(""), permEmpty.alphabet());
-    }*/
-
     @Test
     public void checkDerangement() {
-        assertEquals(true, perm1.derangement());
-        assertEquals(false, perm2.derangement());
-        assertEquals(true, permEmpty.derangement());
-        assertEquals(false, permBig.derangement());
+        assertEquals(true, simplePerm.derangement());
+        assertEquals(false, shortPerm.derangement());
+        assertEquals(true, emptyPerm.derangement());
+        assertEquals(false, bigPerm.derangement());
         assertEquals(false, whiteSpacePerm.derangement());
+        assertEquals(false, derangementCheckPerm.derangement());
     }
 }
 

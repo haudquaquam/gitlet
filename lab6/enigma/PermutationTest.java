@@ -178,13 +178,6 @@ public abstract class PermutationTest {
 
     }
 
-    /*@Test
-    public void alphabetTest() {
-        assertEquals(getNewAlphabet("ABCDEFGH"), perm1.alphabet());
-        assertEquals(getNewAlphabet("XYZ"), perm2.alphabet());
-        assertEquals(getNewAlphabet(""), permEmpty.alphabet());
-    }*/
-
     @Test
     public void checkDerangement() {
         assertEquals(true, perm1.derangement());

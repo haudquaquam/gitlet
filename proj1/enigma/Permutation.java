@@ -200,6 +200,4 @@ class Permutation {
     private ArrayList<String> _cycleList = new ArrayList<>();
     private ArrayList<ArrayList<Integer>> _cycleIndexList = new ArrayList<ArrayList<Integer>>();
 
-    private HashMap<Integer, String> _cycleHashMap = new HashMap<>();
-    private HashMap<Integer, HashMap<Integer, Integer>> _numCycleMap = new HashMap<>();
 }
