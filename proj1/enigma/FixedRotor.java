@@ -11,6 +11,7 @@ class FixedRotor extends Rotor {
      * is given by PERM. */
     FixedRotor(String name, Permutation perm) {
         super(name, perm);
+        set(0);
     }
 
     // FIXME ?

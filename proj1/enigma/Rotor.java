@@ -103,7 +103,7 @@ class Rotor {
     /** Returns true iff I am positioned to allow the rotor to my left
      *  to advance. */
     boolean atNotch() {
-        return (setting() == _notch); // FIXME
+        return (_notches.indexOf(_settingPositionChar) >= 0);
     }
 
     /** Advance me one position, if possible. By default, does nothing. */
@@ -121,9 +121,9 @@ class Rotor {
     /** The permutation implemented by this rotor in its 0 position. */
     private Permutation _permutation;
 
-    private int _notch;
-    private char _settingPositionChar;
-    private int _settingPositionInt;
+    public String _notches;
+    public char _settingPositionChar;
+    public int _settingPositionInt;
     // FIXME: ADDITIONAL FIELDS HERE, AS NEEDED
 
 }
