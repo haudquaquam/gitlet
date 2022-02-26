@@ -9,9 +9,7 @@ class Rotor {
     Rotor(String name, Permutation perm) {
         _name = name;
         _permutation = perm;
-
-        set(0);
-        // FIXME
+        /*_settingPositionInt = 0;*/
     }
 
     /** Return my name. */
@@ -51,26 +49,23 @@ class Rotor {
 
     /** Set setting() to POSN.  */
     void set(int posn) {
+        if (posn >= alphabet().size()) {
+            throw new EnigmaException("Position index is out of bounds.");
+        }
         _settingPositionInt = posn;
-        _settingPositionChar = alphabet().toChar(posn);
     }
 
     /** Set setting() to character CPOSN. */
     void set(char cposn) {
-        _settingPositionChar = cposn;
-        _settingPositionInt = alphabet().toInt(cposn);
+        set(alphabet().toInt(cposn));
     }
 
     /** Return the conversion of P (an integer in the range 0..size()-1)
      *  according to my permutation. */
     int convertForward(int p) {
-        int result = permutation().permute(p + _settingPositionInt);
-        if (result - _settingPositionInt < 0) {
-            int index = alphabet().size() - (_settingPositionInt - result);
-            result = index;
-        } else {
-            result = result - _settingPositionInt;
-        }
+        p += setting();
+        int result = permutation().permute(p);
+        result = permutation().wrap(result - setting());
         if (Main.verbose()) {
             System.err.printf("%c -> ", alphabet().toChar(result));
         }
@@ -80,13 +75,9 @@ class Rotor {
     /** Return the conversion of E (an integer in the range 0..size()-1)
      *  according to the inverse of my permutation. */
     int convertBackward(int e) {
-        int result = _permutation.invert(e - _settingPositionInt);
-        if (result + _settingPositionInt >= alphabet().size()) {
-            int index = (result + _settingPositionInt) - alphabet().size();
-            result = index;
-        } else {
-            result = result + _settingPositionInt;
-        }
+        e += setting();
+        int result = permutation().invert(e);
+        result = permutation().wrap(result - setting());
         if (Main.verbose()) {
             System.err.printf("%c -> ", alphabet().toChar(result));
         }
@@ -102,7 +93,7 @@ class Rotor {
     /** Returns true iff I am positioned to allow the rotor to my left
      *  to advance. */
     boolean atNotch() {
-        return (_notches.indexOf(_settingPositionChar) >= 0);
+        return (_notches != null && _notches.indexOf(alphabet().toChar(_settingPositionInt)) >= 0);
     }
 
     /** Advance me one position, if possible. By default, does nothing. */
@@ -120,9 +111,8 @@ class Rotor {
     /** The permutation implemented by this rotor in its 0 position. */
     private Permutation _permutation;
 
-    private String _notches;
-    private char _settingPositionChar;
-    private int _settingPositionInt;
+    public String _notches;
+    public int _settingPositionInt;
     // FIXME: ADDITIONAL FIELDS HERE, AS NEEDED
 
 }

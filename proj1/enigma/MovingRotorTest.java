@@ -95,4 +95,13 @@ public class MovingRotorTest {
                 rotor.convertBackward(alpha.indexOf('S')));
     }
 
+    @Test
+    public void myOwnTests() {
+        setRotor("I", NAVALA, "");
+        rotor.set(0);
+        System.out.println(rotor.convertForward(0));
+        rotor.set(10);
+        System.out.println(rotor.convertForward(0));
+    }
+
 }

@@ -15,7 +15,6 @@ class MovingRotor extends Rotor {
     MovingRotor(String name, Permutation perm, String notches) {
         super(name, perm);
         _notches = notches;
-        set(0);
     }
 
     @Override
@@ -25,10 +24,13 @@ class MovingRotor extends Rotor {
 
     @Override
     void advance() {
-        if (atNotch()) {
-            set(_settingPositionInt + 1);
-        }
+        set(_settingPositionInt + 1);
+        /*if (_settingPositionInt >= alphabet().size()) {
+            set(0);
+        }*/
     }
+
+
 
     @Override
     String notches() {
@@ -36,8 +38,9 @@ class MovingRotor extends Rotor {
     }
 
     // FIXME: ADDITIONAL FIELDS HERE, AS NEEDED
-    private String _notches;
+/*  private String _notches;
     private char _settingPositionChar;
     private int _settingPositionInt;
+*/
 
 }
