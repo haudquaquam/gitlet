@@ -9,7 +9,7 @@ class Rotor {
     Rotor(String name, Permutation perm) {
         _name = name;
         _permutation = perm;
-        /*_settingPositionInt = 0;*/
+        set(0);
     }
 
     /** Return my name. */
@@ -113,6 +113,5 @@ class Rotor {
 
     public String _notches;
     public int _settingPositionInt;
-    // FIXME: ADDITIONAL FIELDS HERE, AS NEEDED
 
 }

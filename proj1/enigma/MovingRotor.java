@@ -25,22 +25,11 @@ class MovingRotor extends Rotor {
     @Override
     void advance() {
         set(_settingPositionInt + 1);
-        /*if (_settingPositionInt >= alphabet().size()) {
-            set(0);
-        }*/
     }
-
-
 
     @Override
     String notches() {
         return _notches;
     }
-
-    // FIXME: ADDITIONAL FIELDS HERE, AS NEEDED
-/*  private String _notches;
-    private char _settingPositionChar;
-    private int _settingPositionInt;
-*/
 
 }

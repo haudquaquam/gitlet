@@ -86,6 +86,10 @@ class Permutation {
         return r;
     }
 
+    ArrayList<String> permutationArrayList() {
+        return _cycleList;
+    }
+
     /** Returns the size of the alphabet I permute. */
     int size() {
         return _alphabet.size();
@@ -107,7 +111,6 @@ class Permutation {
                     }
                 }
             }
-            // if we reach this point then the integer is not in the list
         }
         return p;
     }
@@ -128,7 +131,6 @@ class Permutation {
                     }
                 }
             }
-            // if we reach this point then the integer is not in the list
         }
         return c;
     }

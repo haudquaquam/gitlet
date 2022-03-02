@@ -14,7 +14,7 @@ import ucb.util.CommandArgs;
 import static enigma.EnigmaException.*;
 
 /** Enigma simulator.
- *  @author
+ *  @author Rae Xin
  */
 public final class Main {
 
