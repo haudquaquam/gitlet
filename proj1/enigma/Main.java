@@ -85,16 +85,67 @@ public final class Main {
      *  file _config and apply it to the messages in _input, sending the
      *  results to _output. */
     private void process() {
-        // FIXME
+        Machine mach = readConfig();
+        ArrayList<String> rotorNamesArray = new ArrayList<>();
+       // String firstToken = _input.next();
+        if (_input.hasNext("\\*")) {
+            String currentToken = _input.next();
+            if (currentToken.equals("*")) {
+                currentToken = _input.next();
+            } else if (currentToken.charAt(0) == '*') {
+                currentToken = currentToken.substring(1);
+            } else {
+                throw error("Input file does not start with \\*!");
+            }
+            ArrayList<String> machAllRotorNames = mach.allRotorNames();
+            while (machAllRotorNames.contains(currentToken)) {
+                rotorNamesArray.add(currentToken);
+                currentToken = _input.next();
+            }
+            String[] rotorNamesList = rotorNamesArray.toArray(new String[rotorNamesArray.size()]);
+            mach.insertRotors(rotorNamesList);
+            String setting = currentToken;
+            setUp(mach, setting);
+
+            String plugboardString = "";
+            while (_input.hasNext("\\((.*?)\\)")) {
+                currentToken = _input.next();
+                plugboardString += currentToken;
+            }
+            mach.setPlugboard(new Permutation(plugboardString, _alphabet));
+
+            String currentLine = "";
+            while (_input.hasNextLine()) {
+                currentLine = _input.nextLine();
+                currentLine = currentLine.replaceAll("\\s+", "");
+                String converted = mach.convert(currentLine);
+                printMessageLine(converted);
+            }
+
+
+        } else {
+            throw error("Input file formatted incorrectly, lacks \\*!");
+        }
     }
 
     /** Return an Enigma machine configured from the contents of configuration
      *  file _config. */
     private Machine readConfig() {
         try {
-            // FIXME
-            _alphabet = new Alphabet();
-            return new Machine(_alphabet, 2, 1, null);
+            /*while (_config.hasNext()) {
+                System.out.println(_config.next());
+            }*/
+            String alpha = _config.next();
+            _alphabet = new Alphabet(alpha);
+            int numRotors = Integer.parseInt(_config.next());
+            int pawls = Integer.parseInt(_config.next());
+            ArrayList<Rotor> allRotors = new ArrayList<>();
+
+            while (_config.hasNext()) {
+                allRotors.add(readRotor());
+            }
+
+            return new Machine(_alphabet, numRotors, pawls, allRotors);
         } catch (NoSuchElementException excp) {
             throw error("configuration file truncated");
         }
@@ -102,17 +153,44 @@ public final class Main {
 
     /** Return a rotor, reading its description from _config. */
     private Rotor readRotor() {
+        Rotor returnRotor = new Rotor("default", new Permutation("", _alphabet));
         try {
-            return null; // FIXME
+            String rotorName = _config.next();
+            String cycles = "";
+            String rotorType = _config.next();
+
+            while (_config.hasNext("\\((.*?)\\)")) {
+                String currentToken = _config.next();
+                cycles += currentToken;
+                /*if (currentToken.charAt(0) != '(') {
+                    rotorName = currentToken;
+                } else if (currentToken.contains("(") && currentToken.contains(")")) {
+                    cycles += currentToken;
+                } else {
+                    throw error("Rotor description for rotor %s is wrong!", rotorName);
+                }*/
+            }
+            Permutation perm = new Permutation(cycles, _alphabet);
+
+            switch(rotorType.charAt(0)) {
+                case 'M':
+                    String notches = rotorType.substring(1);
+                    returnRotor = new MovingRotor(rotorName, perm, notches);
+                case 'R':
+                    returnRotor = new Reflector(rotorName, perm);
+                case 'N':
+                    returnRotor = new FixedRotor(rotorName, perm);
+            }
         } catch (NoSuchElementException excp) {
             throw error("bad rotor description");
         }
+        return returnRotor;
     }
 
     /** Set M according to the specification given on SETTINGS,
      *  which must have the format specified in the assignment. */
     private void setUp(Machine M, String settings) {
-        // FIXME
+        M.setRotors(settings);
     }
 
     /** Return true iff verbose option specified. */
@@ -123,7 +201,12 @@ public final class Main {
     /** Print MSG in groups of five (except that the last group may
      *  have fewer letters). */
     private void printMessageLine(String msg) {
-        // FIXME
+        while (msg.length() > 5) {
+            _output.print(msg.substring(0, 4) + " ");
+            msg = msg.substring(5);
+        }
+        _output.print(msg);
+        _output.println();
     }
 
     /** Alphabet used in this machine. */

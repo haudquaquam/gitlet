@@ -1,8 +1,6 @@
 package enigma;
 
-import java.sql.Array;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Collection;
 
 import static enigma.EnigmaException.*;
@@ -23,9 +21,6 @@ class Machine {
         }
         if (!((pawls >= 0) && (pawls < numRotors))) {
             throw new EnigmaException("Bad number of pawls!");
-        }
-        if (allRotors.size() != numRotors) {
-            throw new EnigmaException("Error in size of allRotors!");
         }
         _allRotors = new ArrayList<Rotor>(allRotors);
         _pawls = pawls;
@@ -49,7 +44,7 @@ class Machine {
         if (k >= numRotors()) {
             throw new EnigmaException("Index out of bounds, cannot get rotor!");
         }
-        return _rotorsInSlots.get(k); // this one or _rotors array?
+        return _rotorsInSlots.get(k);
     }
 
     Alphabet alphabet() {
@@ -61,22 +56,24 @@ class Machine {
      *  Initially, all rotors are set at their 0 setting. */
     void insertRotors(String[] rotors) {
         for (int i = 0; i < rotors.length; i++) {
+            String rotorName = "Rotor " + rotors[i];
             int k = 0;
             while (k < _allRotors.size()) {
-                if (_allRotors.get(k).name() == rotors[i] && !(_rotorsInSlots.contains(rotors[i]))) {
-                    _rotorsInSlots.add(i, _allRotors.get(k));
+                Rotor currentAllRotor = _allRotors.get(k);
+                if (currentAllRotor.name().equals(rotorName) && !(_rotorsInSlots.contains(rotors[i]))) {
+                    _rotorsInSlots.add(currentAllRotor);
                     break;
                 }
                 k++;
             }
         }
-        if (!(_rotorsInSlots.get(0) instanceof Reflector)) {
+        if (!(getRotor(0) instanceof Reflector)) {
             throw new EnigmaException("First rotor is not a reflector!");
         }
         if (_rotorsInSlots.size() != rotors.length) {
             throw error("Attempted to insert invalid rotors!");
         }
-        if (!(_rotorsInSlots.get(_rotorsInSlots.size() - 1) instanceof MovingRotor)) {
+        if (!(getRotor(_rotorsInSlots.size() - 1) instanceof MovingRotor)) {
             throw error("Rightmost rotor is not a MovingRotor!");
         }
     }
@@ -94,7 +91,7 @@ class Machine {
             throw new EnigmaException("Incorrect length of setting string!");
         }
         for (int i = 0; i < _rotorsInSlots.size() - 1; i++) {
-            _rotorsInSlots.get(i + 1).set(setting.charAt(i));
+            getRotor(i + 1).set(setting.charAt(i));
         }
     }
 
@@ -142,44 +139,58 @@ class Machine {
     /** Advance all rotors to their next position. */
     private void advanceRotors() {
         int index = 0;
-        int firstMovingRotorIndex = 0;
-        while (index < _rotorsInSlots.size()) {
-            if (_rotorsInSlots.get(index) instanceof MovingRotor) {
-                firstMovingRotorIndex = index;
-                break;
-            }
-            index++;
-        }
-
-        int rotorIndex = firstMovingRotorIndex;
         int rightmostIndex = _rotorsInSlots.size() - 1;
-        while (rotorIndex < rightmostIndex) {
-            Rotor currentRotor = _rotorsInSlots.get(rotorIndex);
-            Rotor nextRotor = _rotorsInSlots.get(rotorIndex + 1);
-            if (nextRotor.atNotch()) {
+        while (index < rightmostIndex) {
+            Rotor currentRotor = getRotor(index);
+            Rotor nextRotor = getRotor(index + 1);
+            if (currentRotor.rotates() && nextRotor.atNotch()) {
                 currentRotor.advance();
-                if (rotorIndex != rightmostIndex) {
+                if (index != rightmostIndex - 1) {
                     nextRotor.advance();
                 }
-                currentRotor.advance();
-                rotorIndex += 2;
+                index += 2;
             } else {
-                rotorIndex++;
+                index++;
             }
         }
-        _rotorsInSlots.get(rightmostIndex).advance();
+        getRotor(rightmostIndex).advance();
     }
 
     /** Return the result of applying the rotors to the character C (as an
      *  index in the range 0..alphabet size - 1). */
     private int applyRotors(int c) {
-        return c; // FIXME
+
+        int i = _rotorsInSlots.size() - 1;
+        while (i >= 0) {
+            c = getRotor(i).convertForward(c);
+            i--;
+        }
+        i = 1;
+        while (i < _rotorsInSlots.size()) {
+            c = getRotor(i).convertBackward(c);
+            i++;
+        }
+        return c;
     }
 
     /** Returns the encoding/decoding of MSG, updating the state of
      *  the rotors accordingly. */
     String convert(String msg) {
-        return ""; // FIXME
+        String result = "";
+        for (int i = 0; i < msg.length(); i ++) {
+            char currentChar = msg.charAt(i);
+            int alphabetIndexOfCurrentChar = _alphabet.toInt(currentChar);
+            result += _alphabet.toChar(convert(alphabetIndexOfCurrentChar));
+        }
+        return result;
+    }
+
+    ArrayList<String> allRotorNames() {
+        ArrayList<String> allRotorNames = new ArrayList<>();
+        for (Rotor rotor : _allRotors) {
+            allRotorNames.add(rotor.name());
+        }
+        return allRotorNames;
     }
 
     /** Common alphabet of my rotors. */
@@ -188,7 +199,6 @@ class Machine {
     private int _numRotors;
     private int _pawls;
     private ArrayList<Rotor> _allRotors;
-//  private ArrayList<Rotor> _allRotorsArray = new ArrayList<Rotor>(_allRotors);
     private ArrayList<Rotor> _rotorsInSlots = new ArrayList<Rotor>();
     private Permutation _plugboard;
 

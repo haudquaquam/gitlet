@@ -1,5 +1,7 @@
 package enigma;
 
+import static enigma.EnigmaException.error;
+
 /** Superclass that represents a rotor in the enigma machine.
  *  @author Rae Xin
  */
@@ -50,7 +52,7 @@ class Rotor {
     /** Set setting() to POSN.  */
     void set(int posn) {
         if (posn >= alphabet().size()) {
-            throw new EnigmaException("Position index is out of bounds.");
+            throw error("Position index of %d is out of bounds!", posn);
         }
         _settingPositionInt = posn;
     }

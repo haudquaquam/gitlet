@@ -2,6 +2,8 @@ package enigma;
 
 import java.util.HashMap;
 
+import static enigma.EnigmaException.error;
+
 /** An alphabet of encodable characters.  Provides a mapping from characters
  *  to and from indices into the alphabet.
  *  @author Rae Xin
@@ -35,7 +37,9 @@ class Alphabet {
     /** Returns character number INDEX in the alphabet, where
      *  0 <= INDEX < size(). */
     char toChar(int index) {
-        assert(index < _alphabetHashMap.size());
+        if (index >= _alphabetHashMap.size()) {
+            throw error("Index %d is not in bounds of this alphabet!", index);
+        }
         return _alphabetHashMap.get(index);
     }
 
