@@ -41,7 +41,7 @@ class Machine {
      *  #(numRotors()-1) is the fast Rotor.  Modifying this Rotor has
      *  undefined results. */
     Rotor getRotor(int k) {
-        if (k >= numRotors()) {
+        if (k >= numRotors() || k < 0) {
             throw new EnigmaException("Index out of bounds, cannot get rotor!");
         }
         return _rotorsInSlots.get(k);
@@ -55,7 +55,7 @@ class Machine {
      *  available rotors (ROTORS[0] names the reflector).
      *  Initially, all rotors are set at their 0 setting. */
     void insertRotors(String[] rotors) {
-        for (int i = 0; i < rotors.length; i++) {
+        /*for (int i = 0; i < rotors.length; i++) {
             String rotorName = "Rotor " + rotors[i];
             int k = 0;
             while (k < _allRotors.size()) {
@@ -66,14 +66,25 @@ class Machine {
                 }
                 k++;
             }
+        }*/
+        for (int i = 0; i < rotors.length; i++) {
+            int k = 0;
+            while (k < _allRotors.size()) {
+                Rotor currentAllRotor = _allRotors.get(k);
+                if (currentAllRotor.name().equals(rotors[i]) && !(_rotorsInSlots.contains(rotors[i]))) {
+                    _rotorsInSlots.add(currentAllRotor);
+                    break;
+                }
+                k++;
+            }
         }
-        if (!(getRotor(0) instanceof Reflector)) {
+        if (!(_rotorsInSlots.get(0) instanceof Reflector)) {
             throw new EnigmaException("First rotor is not a reflector!");
         }
         if (_rotorsInSlots.size() != rotors.length) {
             throw error("Attempted to insert invalid rotors!");
         }
-        if (!(getRotor(_rotorsInSlots.size() - 1) instanceof MovingRotor)) {
+        if (!(_rotorsInSlots.get(_rotorsInSlots.size() - 1) instanceof MovingRotor)) {
             throw error("Rightmost rotor is not a MovingRotor!");
         }
     }

@@ -85,46 +85,50 @@ public final class Main {
      *  file _config and apply it to the messages in _input, sending the
      *  results to _output. */
     private void process() {
-        Machine mach = readConfig();
-        ArrayList<String> rotorNamesArray = new ArrayList<>();
-       // String firstToken = _input.next();
+        _mach = readConfig();
         if (_input.hasNext("\\*")) {
-            String currentToken = _input.next();
-            if (currentToken.equals("*")) {
-                currentToken = _input.next();
-            } else if (currentToken.charAt(0) == '*') {
-                currentToken = currentToken.substring(1);
-            } else {
-                throw error("Input file does not start with \\*!");
-            }
-            ArrayList<String> machAllRotorNames = mach.allRotorNames();
-            while (machAllRotorNames.contains(currentToken)) {
-                rotorNamesArray.add(currentToken);
-                currentToken = _input.next();
-            }
-            String[] rotorNamesList = rotorNamesArray.toArray(new String[rotorNamesArray.size()]);
-            mach.insertRotors(rotorNamesList);
-            String setting = currentToken;
-            setUp(mach, setting);
-
-            String plugboardString = "";
-            while (_input.hasNext("\\((.*?)\\)")) {
-                currentToken = _input.next();
-                plugboardString += currentToken;
-            }
-            mach.setPlugboard(new Permutation(plugboardString, _alphabet));
-
-            String currentLine = "";
-            while (_input.hasNextLine()) {
-                currentLine = _input.nextLine();
-                currentLine = currentLine.replaceAll("\\s+", "");
-                String converted = mach.convert(currentLine);
-                printMessageLine(converted);
-            }
-
-
+            processHelper();
         } else {
             throw error("Input file formatted incorrectly, lacks \\*!");
+        }
+    }
+
+    private void processHelper() {
+        ArrayList<String> rotorNamesArray = new ArrayList<>();
+
+        String currentToken = _input.next();
+        if (currentToken.equals("*")) {
+            currentToken = _input.next();
+        } else if (currentToken.charAt(0) == '*') {
+            currentToken = currentToken.substring(1);
+        } else {
+            throw error("Input file does not start with \\*!");
+        }
+
+        ArrayList<String> machAllRotorNames = _mach.allRotorNames();
+        while (machAllRotorNames.contains(currentToken)) {
+            rotorNamesArray.add(currentToken);
+            currentToken = _input.next();
+        }
+
+        String[] rotorNamesList = rotorNamesArray.toArray(new String[rotorNamesArray.size()]);
+        _mach.insertRotors(rotorNamesList);
+        String setting = currentToken;
+        setUp(_mach, setting);
+
+        String plugboardString = "";
+        while (_input.hasNext("\\((.*?)\\)")) {
+            currentToken = _input.next();
+            plugboardString += currentToken;
+        }
+        _mach.setPlugboard(new Permutation(plugboardString, _alphabet));
+
+        String currentLine;
+        while (_input.hasNextLine()) {
+            currentLine = _input.nextLine();
+            currentLine = currentLine.replaceAll("\\s+", "");
+            String converted = _mach.convert(currentLine);
+            printMessageLine(converted);
         }
     }
 
@@ -132,9 +136,6 @@ public final class Main {
      *  file _config. */
     private Machine readConfig() {
         try {
-            /*while (_config.hasNext()) {
-                System.out.println(_config.next());
-            }*/
             String alpha = _config.next();
             _alphabet = new Alphabet(alpha);
             int numRotors = Integer.parseInt(_config.next());
@@ -172,14 +173,14 @@ public final class Main {
             }
             Permutation perm = new Permutation(cycles, _alphabet);
 
-            switch(rotorType.charAt(0)) {
-                case 'M':
-                    String notches = rotorType.substring(1);
-                    returnRotor = new MovingRotor(rotorName, perm, notches);
-                case 'R':
-                    returnRotor = new Reflector(rotorName, perm);
-                case 'N':
-                    returnRotor = new FixedRotor(rotorName, perm);
+            char mrn = rotorType.charAt(0);
+            if (mrn == 'M' ) {
+                String notches = rotorType.substring(1);
+                returnRotor = new MovingRotor(rotorName, perm, notches);
+            } else if (mrn == 'R') {
+                returnRotor = new Reflector(rotorName, perm);
+            } else if (mrn == 'N') {
+                returnRotor = new FixedRotor(rotorName, perm);
             }
         } catch (NoSuchElementException excp) {
             throw error("bad rotor description");
@@ -202,7 +203,7 @@ public final class Main {
      *  have fewer letters). */
     private void printMessageLine(String msg) {
         while (msg.length() > 5) {
-            _output.print(msg.substring(0, 4) + " ");
+            _output.print(msg.substring(0, 5) + " ");
             msg = msg.substring(5);
         }
         _output.print(msg);
@@ -223,4 +224,6 @@ public final class Main {
 
     /** True if --verbose specified. */
     private static boolean _verbose;
+
+    private Machine _mach;
 }
