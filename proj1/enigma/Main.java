@@ -124,11 +124,17 @@ public final class Main {
         _mach.setPlugboard(new Permutation(plugboardString, _alphabet));
 
         String currentLine;
+
         while (_input.hasNextLine()) {
-            currentLine = _input.nextLine();
-            currentLine = currentLine.replaceAll("\\s+", "");
-            String converted = _mach.convert(currentLine);
-            printMessageLine(converted);
+            if (_input.hasNext("\\*")) {
+                processHelper();
+            } else {
+                currentLine = _input.nextLine();
+                currentLine = currentLine.replaceAll("\\s+", "");
+                String converted = _mach.convert(currentLine);
+                printMessageLine(converted);
+
+            }
         }
     }
 
