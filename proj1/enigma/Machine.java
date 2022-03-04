@@ -93,11 +93,20 @@ class Machine {
         if (setting.length() != numRotors() - 1) {
             throw new EnigmaException("Incorrect length of setting string!");
         }
-        if (setting.length() > _pawls) {
-            throw error("More setting chars than pawls!");
-        }
         for (int i = 0; i < _rotorsInSlots.size() - 1; i++) {
             getRotor(i + 1).set(setting.charAt(i));
+        }
+        int difference = _numRotors - numPawls();
+        for (int i = 0; i < numRotors(); i++) {
+            if (i < difference) {
+                if (!(_rotorsInSlots.get(i) instanceof FixedRotor)) {
+                    throw error("Rotor should be fixed rotor!");
+                }
+            } else {
+                if (!(_rotorsInSlots.get(i) instanceof MovingRotor)) {
+                    throw error("Rotor should be moving rotor!");
+                }
+            }
         }
     }
 
