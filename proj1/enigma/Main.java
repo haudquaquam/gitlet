@@ -121,11 +121,8 @@ public final class Main {
         String[] rotorNamesList = rotorNamesArray.toArray(new String[0]);
         _mach.insertRotors(rotorNamesList);
         String setting = currentToken;
-        if (!(setting.length() == rotorNamesArray.size() - 1)) {
-            throw error("Wrong number of settings!");
-        }
-        if (setting.length() != _mach.numPawls()) {
-            throw error("Wrong number of settings!");
+        if (setting.length() != _mach.getNumMovingRotors()) {
+            throw error("Wrong length of settings!");
         }
         setUp(_mach, setting);
 
