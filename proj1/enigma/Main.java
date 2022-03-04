@@ -61,6 +61,7 @@ public final class Main {
         } else {
             _output = System.out;
         }
+        _skippedFlag = false;
     }
 
     /** Return a Scanner reading from the file named NAME. */
@@ -93,7 +94,10 @@ public final class Main {
         }
     }
 
+    /** Process tokens from _input. */
     private void processHelper() {
+        _input.useDelimiter("\\s+");
+
         ArrayList<String> rotorNamesArray = new ArrayList<>();
 
         String currentToken = _input.next();
@@ -111,7 +115,7 @@ public final class Main {
             currentToken = _input.next();
         }
 
-        String[] rotorNamesList = rotorNamesArray.toArray(new String[rotorNamesArray.size()]);
+        String[] rotorNamesList = rotorNamesArray.toArray(new String[0]);
         _mach.insertRotors(rotorNamesList);
         String setting = currentToken;
         setUp(_mach, setting);
@@ -123,6 +127,11 @@ public final class Main {
         }
         _mach.setPlugboard(new Permutation(plugboardString, _alphabet));
 
+        if (!(_skippedFlag)) {
+            _input.nextLine();
+            _skippedFlag = true;
+        }
+
         String currentLine;
 
         while (_input.hasNextLine()) {
@@ -133,7 +142,6 @@ public final class Main {
                 currentLine = currentLine.replaceAll("\\s+", "");
                 String converted = _mach.convert(currentLine);
                 printMessageLine(converted);
-
             }
         }
     }
@@ -160,7 +168,8 @@ public final class Main {
 
     /** Return a rotor, reading its description from _config. */
     private Rotor readRotor() {
-        Rotor returnRotor = new Rotor("default", new Permutation("", _alphabet));
+        Permutation emptyPerm = new Permutation("", _alphabet);
+        Rotor returnRotor = new Rotor("default", emptyPerm);
         try {
             String rotorName = _config.next();
             String cycles = "";
@@ -169,18 +178,11 @@ public final class Main {
             while (_config.hasNext("\\((.*?)\\)")) {
                 String currentToken = _config.next();
                 cycles += currentToken;
-                /*if (currentToken.charAt(0) != '(') {
-                    rotorName = currentToken;
-                } else if (currentToken.contains("(") && currentToken.contains(")")) {
-                    cycles += currentToken;
-                } else {
-                    throw error("Rotor description for rotor %s is wrong!", rotorName);
-                }*/
             }
             Permutation perm = new Permutation(cycles, _alphabet);
 
             char mrn = rotorType.charAt(0);
-            if (mrn == 'M' ) {
+            if (mrn == 'M') {
                 String notches = rotorType.substring(1);
                 returnRotor = new MovingRotor(rotorName, perm, notches);
             } else if (mrn == 'R') {
@@ -208,12 +210,16 @@ public final class Main {
     /** Print MSG in groups of five (except that the last group may
      *  have fewer letters). */
     private void printMessageLine(String msg) {
-        while (msg.length() > 5) {
-            _output.print(msg.substring(0, 5) + " ");
-            msg = msg.substring(5);
+        if (msg != "") {
+            while (msg.length() > 5) {
+                _output.print(msg.substring(0, 5) + " ");
+                msg = msg.substring(5);
+            }
+            _output.print(msg);
+            _output.println();
+        } else {
+            _output.println();
         }
-        _output.print(msg);
-        _output.println();
     }
 
     /** Alphabet used in this machine. */
@@ -231,5 +237,9 @@ public final class Main {
     /** True if --verbose specified. */
     private static boolean _verbose;
 
+    /** Machine for this config. */
     private Machine _mach;
+
+    /** Stupid boolean for stupid problem. */
+    private boolean _skippedFlag;
 }
