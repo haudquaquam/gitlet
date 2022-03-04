@@ -124,6 +124,9 @@ public final class Main {
         if (!(setting.length() == rotorNamesArray.size() - 1)) {
             throw error("Wrong number of settings!");
         }
+        if (setting.length() > _mach.numPawls()) {
+            throw error("Too many settings!");
+        }
         setUp(_mach, setting);
 
         String plugboardString = "";
@@ -159,6 +162,7 @@ public final class Main {
                     throw error("Alphabet is numeric!");
                 }
             } catch (NumberFormatException nfe) {
+                String hello = "there is nothing wrong";
             }
             _alphabet = new Alphabet(alpha);
             int numRotors = 0;

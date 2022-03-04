@@ -196,16 +196,6 @@ class Machine {
         return allRotorNames;
     }
 
-    int getNumMovingRotors() {
-        int count = 0;
-        for (int i = 0; i < _rotorsInSlots.size(); i++) {
-            if (getRotor(i) instanceof MovingRotor) {
-                count++;
-            }
-        }
-        return count;
-    }
-
     /** Common alphabet of my rotors. */
     private final Alphabet _alphabet;
 
