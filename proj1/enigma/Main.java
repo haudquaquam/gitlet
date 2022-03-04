@@ -124,9 +124,6 @@ public final class Main {
         if (!(setting.length() == rotorNamesArray.size() - 1)) {
             throw error("Wrong number of settings!");
         }
-        if (setting.length() > _mach.numPawls()) {
-            throw error("Too many settings!");
-        }
         setUp(_mach, setting);
 
         if (settings.hasNext() && !(settings.hasNext("\\((.*?)\\)"))) {
