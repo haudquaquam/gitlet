@@ -29,7 +29,6 @@ class MovingRotor extends Rotor {
             currentIndex -= sub;
             newNotch += alphabet().toChar(permutation().wrap(currentIndex));
         }
-        System.out.println(newNotch + " " + name());
         _notches = newNotch;
     }
 
