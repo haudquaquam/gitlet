@@ -139,7 +139,7 @@ public final class Main {
         _mach.setPlugboard(new Permutation(plugboardString, _alphabet));
     }
 
-    /** Implements ring setting. */
+    /** Implements ring setting from RING. */
     private void setRingSetting(String ring) {
         String ringSetting = ring;
         int numReflectors = 0;

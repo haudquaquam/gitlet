@@ -11,6 +11,7 @@ class Rotor {
     Rotor(String name, Permutation perm) {
         _name = name;
         _permutation = perm;
+        _ringSetting = 0;
         set(0);
     }
 
@@ -49,15 +50,19 @@ class Rotor {
         return _settingPositionInt;
     }
 
+    /** Set my ring setting to RING. */
     void setRingSetting(char ring) {
         _ringSetting = alphabet().toInt(ring);
-        subtractSetting(ring);
+        subtractSetting(_ringSetting);
+        subtractNotch(_ringSetting);
     }
 
+    /** Subtract POSN from setting. */
     void subtractSetting(int posn) {
         set(permutation().wrap(setting() - posn));
     }
 
+    /** Subtract CPOSN from setting. */
     void subtractSetting(char cposn) {
         if (!(alphabet().contains(cposn))) {
             throw error("Setting %c not in alphabet!", cposn);
@@ -108,13 +113,6 @@ class Rotor {
     }
 
     void subtractNotch(int sub) {
-        String newNotch = "";
-        for (int i = 0; i < notches().length(); i++) {
-            int currentIndex = alphabet().toInt(notches().charAt(i));
-            currentIndex -= sub;
-            newNotch += alphabet().toChar(permutation().wrap(currentIndex));
-        }
-        _notches = newNotch;
     }
 
     /** Returns the positions of the notches, as a string giving the letters
