@@ -96,13 +96,13 @@ public final class Main {
 
     /** Process settings from _input using SCANNERLINE. */
     private void processSettings(String scannerLine) {
-        Scanner settings = new Scanner(scannerLine);
+        Scanner settingsLine = new Scanner(scannerLine);
 
         ArrayList<String> rotorNamesArray = new ArrayList<>();
 
-        String currentToken = settings.next();
+        String currentToken = settingsLine.next();
         if (currentToken.equals("*")) {
-            currentToken = settings.next();
+            currentToken = settingsLine.next();
         } else if (currentToken.charAt(0) == '*') {
             currentToken = currentToken.substring(1);
         } else {
@@ -115,7 +115,7 @@ public final class Main {
                 throw error("Repeated rotor!");
             }
             rotorNamesArray.add(currentToken);
-            currentToken = settings.next();
+            currentToken = settingsLine.next();
         }
 
         String[] rotorNamesList = rotorNamesArray.toArray(new String[0]);
@@ -126,25 +126,30 @@ public final class Main {
         }
         setUp(_mach, setting);
 
-        if (settings.hasNext() && !(settings.hasNext("\\((.*?)\\)"))) {
-            setRingSetting();
+        if (settingsLine.hasNext() && !(settingsLine.hasNext("\\((.*?)\\)"))) {
+            String ring = settingsLine.next();
+            setRingSetting(ring);
         }
 
         String plugboardString = "";
-        while (settings.hasNext("\\((.*?)\\)")) {
-            currentToken = settings.next();
+        while (settingsLine.hasNext("\\((.*?)\\)")) {
+            currentToken = settingsLine.next();
             plugboardString += currentToken;
         }
         _mach.setPlugboard(new Permutation(plugboardString, _alphabet));
     }
 
     /** Implements ring setting. */
-    private void setRingSetting() {
-        String ringSetting = _input.next();
+    private void setRingSetting(String ring) {
+        String ringSetting = ring;
+        int numReflectors = 0;
         for (int i = 0; i < _mach.getRotorsInSlots().size(); i++) {
-            _mach.getRotor(i).addSetting(ringSetting.charAt(i));
-            for (int k = 0; k < _mach.getRotor(i).notches().length(); k++) {
-
+            Rotor currentRotor = _mach.getRotor(i);
+            if (!(currentRotor.reflecting())) {
+                char currentRingSetting = ringSetting.charAt(i - numReflectors);
+                currentRotor.setRingSetting(currentRingSetting);
+            } else {
+                numReflectors++;
             }
         }
     }

@@ -49,15 +49,20 @@ class Rotor {
         return _settingPositionInt;
     }
 
-    void addSetting(int posn) {
-        set(permutation().wrap(posn + setting()));
+    void setRingSetting(char ring) {
+        _ringSetting = alphabet().toInt(ring);
+        subtractSetting(ring);
     }
 
-    void addSetting(char cposn) {
+    void subtractSetting(int posn) {
+        set(permutation().wrap(setting() - posn));
+    }
+
+    void subtractSetting(char cposn) {
         if (!(alphabet().contains(cposn))) {
             throw error("Setting %c not in alphabet!", cposn);
         }
-        addSetting(alphabet().toInt(cposn));
+        subtractSetting(alphabet().toInt(cposn));
     }
 
     /** Set setting() to POSN.  */
@@ -76,6 +81,7 @@ class Rotor {
         set(alphabet().toInt(cposn));
     }
 
+
     /** Return the conversion of P (an integer in the range 0..size()-1)
      *  according to my permutation. */
     int convertForward(int p) {
@@ -88,6 +94,7 @@ class Rotor {
         return result;
     }
 
+
     /** Return the conversion of E (an integer in the range 0..size()-1)
      *  according to the inverse of my permutation. */
     int convertBackward(int e) {
@@ -98,6 +105,16 @@ class Rotor {
             System.err.printf("%c -> ", alphabet().toChar(result));
         }
         return result;
+    }
+
+    void subtractNotch(int sub) {
+        String newNotch = "";
+        for (int i = 0; i < notches().length(); i++) {
+            int currentIndex = alphabet().toInt(notches().charAt(i));
+            currentIndex -= sub;
+            newNotch += alphabet().toChar(permutation().wrap(currentIndex));
+        }
+        _notches = newNotch;
     }
 
     /** Returns the positions of the notches, as a string giving the letters
@@ -136,5 +153,8 @@ class Rotor {
 
     /** My setting as an integer. */
     private int _settingPositionInt;
+
+    /** My ring setting. */
+    private int _ringSetting;
 
 }
