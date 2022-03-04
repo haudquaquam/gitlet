@@ -77,7 +77,7 @@ public class PermutationTest {
     public Permutation whitePerm = new Permutation(whiteCycles, whiteAlpha);
     public Alphabet derangeAlpha = new Alphabet("ABCD");
     public String derangeCycles = "(A)(B)(C)(D)";
-    public Permutation derangePerm = new Permutation(derangeCycles, derangeAlpha);
+    public Permutation derPerm = new Permutation(derangeCycles, derangeAlpha);
 
     @Test(expected = EnigmaException.class)
     public void testNotInAlphabetPermute() {
@@ -96,7 +96,7 @@ public class PermutationTest {
         assertEquals(0, emptyPerm.size());
         assertEquals(52, bigPerm.size());
         assertEquals(11, whitePerm.size());
-        assertEquals(4, derangePerm.size());
+        assertEquals(4, derPerm.size());
     }
 
     @Test
@@ -159,7 +159,7 @@ public class PermutationTest {
         assertEquals(true, emptyPerm.derangement());
         assertEquals(false, bigPerm.derangement());
         assertEquals(false, whitePerm.derangement());
-        assertEquals(false, derangePerm.derangement());
+        assertEquals(false, derPerm.derangement());
     }
 }
 

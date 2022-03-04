@@ -94,15 +94,15 @@ public final class Main {
         }
     }
 
-    /** Process tokens from _input. */
-    private void processHelper() {
-        _input.useDelimiter("\\s+");
+    /** Process settings from _input using SCANNERLINE. */
+    private void processSettings(String scannerLine) {
+        Scanner settings = new Scanner(scannerLine);
 
         ArrayList<String> rotorNamesArray = new ArrayList<>();
 
-        String currentToken = _input.next();
+        String currentToken = settings.next();
         if (currentToken.equals("*")) {
-            currentToken = _input.next();
+            currentToken = settings.next();
         } else if (currentToken.charAt(0) == '*') {
             currentToken = currentToken.substring(1);
         } else {
@@ -111,34 +111,36 @@ public final class Main {
 
         ArrayList<String> machAllRotorNames = _mach.allRotorNames();
         while (machAllRotorNames.contains(currentToken)) {
+            if (rotorNamesArray.contains(currentToken)) {
+                throw error("Repeated rotor!");
+            }
             rotorNamesArray.add(currentToken);
-            currentToken = _input.next();
+            currentToken = settings.next();
         }
 
         String[] rotorNamesList = rotorNamesArray.toArray(new String[0]);
         _mach.insertRotors(rotorNamesList);
         String setting = currentToken;
+        if (!(setting.length() == rotorNamesArray.size() - 1)) {
+            throw error("Wrong number of settings!");
+        }
         setUp(_mach, setting);
 
         String plugboardString = "";
-        while (_input.hasNext("\\((.*?)\\)")) {
-            currentToken = _input.next();
+        while (settings.hasNext("\\((.*?)\\)")) {
+            currentToken = settings.next();
             plugboardString += currentToken;
         }
         _mach.setPlugboard(new Permutation(plugboardString, _alphabet));
+    }
 
-        if (!(_skippedFlag)) {
-            _input.nextLine();
-            _skippedFlag = true;
-        }
-
-        String currentLine;
-
+    /** Process lines from _input. */
+    private void processHelper() {
         while (_input.hasNextLine()) {
-            if (_input.hasNext("\\*")) {
-                processHelper();
+            String currentLine = _input.nextLine();
+            if (!(currentLine.equals("")) && currentLine.charAt(0) == '*') {
+                processSettings(currentLine);
             } else {
-                currentLine = _input.nextLine();
                 currentLine = currentLine.replaceAll("\\s+", "");
                 String converted = _mach.convert(currentLine);
                 printMessageLine(converted);
@@ -151,9 +153,20 @@ public final class Main {
     private Machine readConfig() {
         try {
             String alpha = _config.next();
+            try {
+                Integer.parseInt(alpha);
+                throw error("Alphabet is numeric!");
+            } catch (NumberFormatException nfe) {
+            }
             _alphabet = new Alphabet(alpha);
-            int numRotors = Integer.parseInt(_config.next());
-            int pawls = Integer.parseInt(_config.next());
+            int numRotors = 0;
+            int pawls = 0;
+            try {
+                numRotors = Integer.parseInt(_config.next());
+                pawls = Integer.parseInt(_config.next());
+            } catch (NumberFormatException nfe) {
+                throw error("Non-int values of numRotors or pawls!");
+            }
             ArrayList<Rotor> allRotors = new ArrayList<>();
 
             while (_config.hasNext()) {
