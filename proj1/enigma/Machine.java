@@ -60,9 +60,11 @@ class Machine {
             int k = 0;
             while (k < _allRotors.size()) {
                 Rotor currentAllRotor = _allRotors.get(k);
-                if (currentAllRotor.name().equals(rotors[i]) && !(_rotorsInSlots.contains(rotors[i]))) {
-                    _rotorsInSlots.add(currentAllRotor);
-                    break;
+                if (currentAllRotor.name().equals(rotors[i])) {
+                    if (!(_rotorsInSlots.contains(rotors[i]))) {
+                        _rotorsInSlots.add(currentAllRotor);
+                        break;
+                    }
                 }
                 k++;
             }
@@ -73,7 +75,8 @@ class Machine {
         if (_rotorsInSlots.size() != rotors.length) {
             throw error("Attempted to insert invalid rotors!");
         }
-        if (!(_rotorsInSlots.get(_rotorsInSlots.size() - 1) instanceof MovingRotor)) {
+        Rotor rightmostRotor = _rotorsInSlots.get(_rotorsInSlots.size() - 1);
+        if (!(rightmostRotor instanceof MovingRotor)) {
             throw error("Rightmost rotor is not a MovingRotor!");
         }
     }
@@ -84,7 +87,7 @@ class Machine {
     void setRotors(String setting) {
         for (char character : setting.toCharArray()) {
             if (!(alphabet().contains(character))) {
-                throw error("Setting string contains characters not in alphabet!");
+                throw error("Invalid setting!");
             }
         }
         if (setting.length() != numRotors() - 1) {
@@ -177,7 +180,7 @@ class Machine {
      *  the rotors accordingly. */
     String convert(String msg) {
         String result = "";
-        for (int i = 0; i < msg.length(); i ++) {
+        for (int i = 0; i < msg.length(); i++) {
             char currentChar = msg.charAt(i);
             int alphabetIndexOfCurrentChar = _alphabet.toInt(currentChar);
             result += _alphabet.toChar(convert(alphabetIndexOfCurrentChar));
@@ -196,10 +199,19 @@ class Machine {
     /** Common alphabet of my rotors. */
     private final Alphabet _alphabet;
 
+    /** Number of my rotors. */
     private int _numRotors;
+
+    /** Number of my pawls. */
     private int _pawls;
+
+    /** List of all rotors available. */
     private ArrayList<Rotor> _allRotors;
-    private ArrayList<Rotor> _rotorsInSlots = new ArrayList<Rotor>();
+
+    /** List of active rotors that have been inserted. */
+    private ArrayList<Rotor> _rotorsInSlots;
+
+    /** My plugboard. */
     private Permutation _plugboard;
 
 }

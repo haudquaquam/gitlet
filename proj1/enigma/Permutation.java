@@ -2,12 +2,9 @@ package enigma;
 
 import static enigma.EnigmaException.*;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
-import java.util.HashMap;
 
 /** Represents a permutation of a range of integers starting at 0 corresponding
  *  to the characters of an alphabet.
@@ -20,23 +17,6 @@ class Permutation {
      *  is interpreted as a permutation in cycle notation.  Characters in the
      *  alphabet that are not included in any cycle map to themselves.
      *  Whitespace is ignored.
-     *
-     *  \(|\) \(|\)
-     **for(
-    int i = 0;
-    i<result.length;i++)
-
-    {
-     *String permString = "";
-     *String indexString = "";
-     *for (int k = 0; k < result[i].length(); k++) {
-     *if (_alphabet.contains(result[i].charAt(k))) {
-     *permString += result[i].charAt(k);
-     *}
-     *}
-     *_cycleHashMap.put(0, permString);
-     *
-     * Huge thanks to Jacob Tomaw on Stack Exchange for regex help.
      */
     Permutation(String cycles, Alphabet alphabet) {
         _alphabet = alphabet;
@@ -54,9 +34,10 @@ class Permutation {
 
             for (int k = 0; k < cycleString.length(); k++) {
                 if (_alphabet.contains(cycleString.charAt(k))) {
-                    currentCycleIndexList.add(_alphabet.toInt(cycleString.charAt(k)));
+                    int cycle = _alphabet.toInt(cycleString.charAt(k));
+                    currentCycleIndexList.add(cycle);
                 } else {
-                    throw new EnigmaException("Cycle contains letters not in alphabet");
+                    throw error("Cycle has letters not in alphabet");
                 }
             }
 
@@ -70,7 +51,9 @@ class Permutation {
     private void addCycle(String cycle) {
         ArrayList<Integer> currentCycleIndexList = new ArrayList<>();
         for (int i = 0; i < cycle.length(); i++) {
-            assert(_alphabet.contains(cycle.charAt(i)));
+            if (!(_alphabet.contains(cycle.charAt(i)))) {
+                throw error("Trying to add invalid cycle!");
+            }
             currentCycleIndexList.add(_alphabet.toInt(cycle.charAt(i)));
         }
         _cycleIndexList.add(currentCycleIndexList);
@@ -127,7 +110,8 @@ class Permutation {
                     if (k > 0) {
                         return currentCycleIndexList.get(k - 1);
                     } else {
-                        return currentCycleIndexList.get(currentCycleIndexList.size() - 1);
+                        int lastIndex = currentCycleIndexList.size() - 1;
+                        return currentCycleIndexList.get(lastIndex);
                     }
                 }
             }
@@ -140,7 +124,7 @@ class Permutation {
     char permute(char p) {
 
         if (!_alphabet.contains(p)) {
-            throw new EnigmaException("Specified character \"%p\" is not in alphabet!");
+            throw new EnigmaException("Character \"%p\" is not in alphabet!");
         }
 
         for (int i = 0; i < _cycleList.size(); i++) {
@@ -154,28 +138,28 @@ class Permutation {
                 }
             }
         }
-        return p;  // if we get to this point then the char is not in the string
+        return p;
     }
 
     /** Return the result of applying the inverse of this permutation to C. */
     char invert(char c) {
 
         if (!_alphabet.contains(c)) {
-            throw new EnigmaException("Specified character \"%c\" is not in alphabet!");
+            throw new EnigmaException("Character \"%c\" is not in alphabet!");
         }
 
         for (int i = 0; i < _cycleList.size(); i++) {
-            String currentCycleString = _cycleList.get(i);
-            int indexOfC = currentCycleString.indexOf(c);
+            String currentCycle = _cycleList.get(i);
+            int indexOfC = currentCycle.indexOf(c);
             if (indexOfC >= 0) {
                 if (indexOfC == 0) {
-                    return currentCycleString.charAt(currentCycleString.length() - 1);
+                    return currentCycle.charAt(currentCycle.length() - 1);
                 } else {
-                    return currentCycleString.charAt(indexOfC - 1);
+                    return currentCycle.charAt(indexOfC - 1);
                 }
             }
         }
-        return c;  // if we get to this point then the char is not in the string
+        return c;
     }
 
     /** Return the alphabet used to initialize this Permutation. */
@@ -199,7 +183,10 @@ class Permutation {
     /** Alphabet of this permutation. */
     private Alphabet _alphabet;
 
+    /** List of cycles. */
     private ArrayList<String> _cycleList = new ArrayList<>();
-    private ArrayList<ArrayList<Integer>> _cycleIndexList = new ArrayList<ArrayList<Integer>>();
+
+    /** List of cycle lists. */
+    private ArrayList<ArrayList<Integer>> _cycleIndexList = new ArrayList<>();
 
 }

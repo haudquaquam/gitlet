@@ -59,6 +59,7 @@ class Alphabet {
         return value;
     }
 
+    /** Characters of the alphabet mapped to their indices. */
     private HashMap<Integer, Character> _alphabetHashMap = new HashMap<>();
 
 }

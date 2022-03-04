@@ -62,17 +62,22 @@ public class PermutationTest {
     }
 
     public Alphabet simpleAlpha = new Alphabet("ABCDEFGH");
-    public Permutation simplePerm = new Permutation("(ABCD)(EFGH)", simpleAlpha);
+    public String simpleCycles = "(ABCD)(EFGH)";
+    public Permutation simplePerm = new Permutation(simpleCycles, simpleAlpha);
     public Alphabet shortAlpha = new Alphabet("XYZ");
     public Permutation shortPerm = new Permutation("(XZ)", shortAlpha);
     public Alphabet emptyAlpha = new Alphabet("");
     public Permutation emptyPerm = new Permutation("", emptyAlpha);
-    public Alphabet bigAlpha = new Alphabet("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890");
-    public Permutation bigPerm = new Permutation("(AaBbCcDdEe)  (FGHI) (JKLmnopq)(RSTUV12345) (0)", bigAlpha);
-    public Alphabet whiteSpaceAlpha = new Alphabet("ABCDEFGHIJK");
-    public Permutation whiteSpacePerm = new Permutation("  (AB) (DE)  (F)    (G) ", whiteSpaceAlpha);
-    public Alphabet derangementCheckAlpha = new Alphabet("ABCD");
-    public Permutation derangementCheckPerm = new Permutation("(A) (B) (C) (D)", derangementCheckAlpha);
+    public String bA = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+    public Alphabet bigAlpha = new Alphabet(bA);
+    public String bigCycles = "(AaBbCcDdEe)  (FGHI) (JKLmnopq)(RSTUV) (z)";
+    public Permutation bigPerm = new Permutation(bigCycles, bigAlpha);
+    public Alphabet whiteAlpha = new Alphabet("ABCDEFGHIJK");
+    public String whiteCycles = "  (AB) (DE) (F) (G) ";
+    public Permutation whitePerm = new Permutation(whiteCycles, whiteAlpha);
+    public Alphabet derangeAlpha = new Alphabet("ABCD");
+    public String derangeCycles = "(A)(B)(C)(D)";
+    public Permutation derangePerm = new Permutation(derangeCycles, derangeAlpha);
 
     @Test(expected = EnigmaException.class)
     public void testNotInAlphabetPermute() {
@@ -89,9 +94,9 @@ public class PermutationTest {
         assertEquals(8, simplePerm.size());
         assertEquals(3, shortPerm.size());
         assertEquals(0, emptyPerm.size());
-        assertEquals(62, bigPerm.size());
-        assertEquals(11, whiteSpacePerm.size());
-        assertEquals(4, derangementCheckPerm.size());
+        assertEquals(52, bigPerm.size());
+        assertEquals(11, whitePerm.size());
+        assertEquals(4, derangePerm.size());
     }
 
     @Test
@@ -110,13 +115,13 @@ public class PermutationTest {
         assertEquals(2, shortPerm.permute(-666));
         assertEquals(1, shortPerm.permute(-1001));
 
-        assertEquals(61, bigPerm.permute(61));
+        assertEquals(51, bigPerm.permute(51));
         assertEquals('b', bigPerm.permute('B'));
         assertEquals(26, bigPerm.permute(0));
-        assertEquals('0', bigPerm.permute('0'));
+        assertEquals('z', bigPerm.permute('z'));
 
-        assertEquals(4, whiteSpacePerm.permute(3));
-        assertEquals('E', whiteSpacePerm.permute('D'));
+        assertEquals(4, whitePerm.permute(3));
+        assertEquals('E', whitePerm.permute('D'));
     }
 
     @Test
@@ -136,13 +141,13 @@ public class PermutationTest {
         assertEquals(3, simplePerm.invert(-888));
         assertEquals(2, shortPerm.invert(-666));
 
-        assertEquals(61, bigPerm.invert(61));
+        assertEquals(51, bigPerm.invert(51));
         assertEquals('B', bigPerm.invert('b'));
         assertEquals(0, bigPerm.invert(26));
-        assertEquals('0', bigPerm.invert('0'));
+        assertEquals('z', bigPerm.invert('z'));
 
-        assertEquals(3, whiteSpacePerm.invert(4));
-        assertEquals('D', whiteSpacePerm.invert('E'));
+        assertEquals(3, whitePerm.invert(4));
+        assertEquals('D', whitePerm.invert('E'));
 
 
     }
@@ -153,8 +158,8 @@ public class PermutationTest {
         assertEquals(false, shortPerm.derangement());
         assertEquals(true, emptyPerm.derangement());
         assertEquals(false, bigPerm.derangement());
-        assertEquals(false, whiteSpacePerm.derangement());
-        assertEquals(false, derangementCheckPerm.derangement());
+        assertEquals(false, whitePerm.derangement());
+        assertEquals(false, derangePerm.derangement());
     }
 }
 

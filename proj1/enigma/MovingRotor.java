@@ -24,12 +24,26 @@ class MovingRotor extends Rotor {
 
     @Override
     void advance() {
-        set(permutation().wrap(_settingPositionInt + 1));
+        set(permutation().wrap(getSettingInt() + 1));
     }
 
     @Override
     String notches() {
         return _notches;
     }
+
+    @Override
+    boolean atNotch() {
+        boolean flag = false;
+        if (_notches != null) {
+            if (_notches.indexOf(alphabet().toChar(getSettingInt())) >= 0) {
+                flag = true;
+            }
+        }
+        return flag;
+    }
+
+    /** My notches. */
+    private String _notches;
 
 }

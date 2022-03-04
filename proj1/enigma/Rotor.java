@@ -59,6 +59,9 @@ class Rotor {
 
     /** Set setting() to character CPOSN. */
     void set(char cposn) {
+        if (!(alphabet().contains(cposn))) {
+            throw error("Setting %c not in alphabet!", cposn);
+        }
         set(alphabet().toInt(cposn));
     }
 
@@ -95,11 +98,15 @@ class Rotor {
     /** Returns true iff I am positioned to allow the rotor to my left
      *  to advance. */
     boolean atNotch() {
-        return (_notches != null && _notches.indexOf(alphabet().toChar(_settingPositionInt)) >= 0);
+        return false;
     }
 
     /** Advance me one position, if possible. By default, does nothing. */
     void advance() {
+    }
+
+    int getSettingInt() {
+        return _settingPositionInt;
     }
 
     @Override
@@ -113,7 +120,10 @@ class Rotor {
     /** The permutation implemented by this rotor in its 0 position. */
     private Permutation _permutation;
 
-    public String _notches;
-    public int _settingPositionInt;
+    /** My notches. */
+    private String _notches;
+
+    /** My setting as an integer. */
+    private int _settingPositionInt;
 
 }

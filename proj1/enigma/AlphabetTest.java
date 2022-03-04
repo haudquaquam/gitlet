@@ -4,26 +4,26 @@ import static org.junit.Assert.assertEquals;
 
 public class AlphabetTest {
 
-    private Alphabet lowerCaseAlpha = new Alphabet("abcdefghijklmnopqrstuvwxyz");
+    private Alphabet lowerAlpha = new Alphabet("abcdefghijklmnopqrstuvwxyz");
     private Alphabet emptyAlpha = new Alphabet("");
     private Alphabet randomAlpha = new Alphabet("1234567890hellomynameisRae!");
 
     @Test
     public void checkSize() {
-        assertEquals(26, lowerCaseAlpha.size());
+        assertEquals(26, lowerAlpha.size());
         assertEquals(0, emptyAlpha.size());
         assertEquals(27, randomAlpha.size());
     }
 
     @Test
     public void checkIndex() {
-        assertEquals(4, lowerCaseAlpha.toInt('e'));
-        assertEquals(25, lowerCaseAlpha.toInt('z'));
-        assertEquals(2, lowerCaseAlpha.toInt('c'));
-        assertEquals(11, lowerCaseAlpha.toInt('l'));
-        assertEquals(0, lowerCaseAlpha.toInt('a'));
-        assertEquals(15, lowerCaseAlpha.toInt('p'));
-        assertEquals(-1, lowerCaseAlpha.toInt('5'));
+        assertEquals(4, lowerAlpha.toInt('e'));
+        assertEquals(25, lowerAlpha.toInt('z'));
+        assertEquals(2, lowerAlpha.toInt('c'));
+        assertEquals(11, lowerAlpha.toInt('l'));
+        assertEquals(0, lowerAlpha.toInt('a'));
+        assertEquals(15, lowerAlpha.toInt('p'));
+        assertEquals(-1, lowerAlpha.toInt('5'));
 
         assertEquals(-1, emptyAlpha.toInt('d'));
 
@@ -34,9 +34,9 @@ public class AlphabetTest {
 
     @Test
     public void checkToChar() {
-        assertEquals('h', lowerCaseAlpha.toChar(7));
-        assertEquals('z', lowerCaseAlpha.toChar(25));
-        assertEquals('q', lowerCaseAlpha.toChar(16));
+        assertEquals('h', lowerAlpha.toChar(7));
+        assertEquals('z', lowerAlpha.toChar(25));
+        assertEquals('q', lowerAlpha.toChar(16));
 
         assertEquals('!', randomAlpha.toChar(26));
         assertEquals('h', randomAlpha.toChar(10));
@@ -44,10 +44,10 @@ public class AlphabetTest {
 
     @Test
     public void checkContains() {
-        assertEquals(true, lowerCaseAlpha.contains('t'));
-        assertEquals(true, lowerCaseAlpha.contains('a'));
-        assertEquals(true, lowerCaseAlpha.contains('z'));
-        assertEquals(false, lowerCaseAlpha.contains('3'));
+        assertEquals(true, lowerAlpha.contains('t'));
+        assertEquals(true, lowerAlpha.contains('a'));
+        assertEquals(true, lowerAlpha.contains('z'));
+        assertEquals(false, lowerAlpha.contains('3'));
 
         assertEquals(false, emptyAlpha.contains('3'));
 
