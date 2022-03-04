@@ -129,12 +129,27 @@ public final class Main {
         }
         setUp(_mach, setting);
 
+        if (settings.hasNext() && !(settings.hasNext("\\((.*?)\\)"))) {
+            setRingSetting();
+        }
+
         String plugboardString = "";
         while (settings.hasNext("\\((.*?)\\)")) {
             currentToken = settings.next();
             plugboardString += currentToken;
         }
         _mach.setPlugboard(new Permutation(plugboardString, _alphabet));
+    }
+
+    /** Implements ring setting. */
+    private void setRingSetting() {
+        String ringSetting = _input.next();
+        for (int i = 0; i < _mach.getRotorsInSlots().size(); i++) {
+            _mach.getRotor(i).addSetting(ringSetting.charAt(i));
+            for (int k = 0; k < _mach.getRotor(i).notches().length(); k++) {
+
+            }
+        }
     }
 
     /** Process lines from _input. */

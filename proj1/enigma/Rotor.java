@@ -49,6 +49,17 @@ class Rotor {
         return _settingPositionInt;
     }
 
+    void addSetting(int posn) {
+        set(permutation().wrap(posn + setting()));
+    }
+
+    void addSetting(char cposn) {
+        if (!(alphabet().contains(cposn))) {
+            throw error("Setting %c not in alphabet!", cposn);
+        }
+        addSetting(alphabet().toInt(cposn));
+    }
+
     /** Set setting() to POSN.  */
     void set(int posn) {
         if (posn >= alphabet().size()) {

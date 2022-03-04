@@ -196,6 +196,12 @@ class Machine {
         return allRotorNames;
     }
 
+    ArrayList<Rotor> getRotorsInSlots() {
+        return _rotorsInSlots;
+    }
+
+
+
     /** Common alphabet of my rotors. */
     private final Alphabet _alphabet;
 
