@@ -21,12 +21,23 @@ public class TreeMap<K extends Comparable<K>, V> implements SimpleMap<K, V> {
      * itself, or a descendant of node).
      *
      * If node is null then a new Node without any descendants is created.
-     * Otherwise the function is recursively called on either the left and
+     * Otherwise, the function is recursively called on either the left and
      * right descendant based on the rules of BSTs.
      */
     private TreeMapNode putHelper(TreeMapNode node, K key, V value) {
-        // FIXME
-        return null;
+        if (node == null) {
+            node = new TreeMapNode(key, value, null, null);
+        } else {
+            int compareKey = key.compareTo(node._key);
+            if (compareKey < 0) {
+                node._left = putHelper(node._left, key, value);
+            } else if (compareKey > 0) {
+                node._right = putHelper(node._right, key, value);
+            } else {
+                node._value = value;
+            }
+        }
+        return node;
     }
 
     /**
@@ -38,8 +49,15 @@ public class TreeMap<K extends Comparable<K>, V> implements SimpleMap<K, V> {
      * called on either the right or left descendant based on the rules of BSTs.
      */
     private V getHelper(TreeMapNode node, K key) {
-        // FIXME
-        return null;
+        if (node == null) {
+            return null;
+        } else if (node._key.compareTo(key) == 0) {
+            return node._value;
+        } else if (node._key.compareTo(key) < 0) {
+            return getHelper(node._right, key);
+        } else {
+            return getHelper(node._left, key);
+        }
     }
 
     private TreeMapNode _root;

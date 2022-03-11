@@ -21,7 +21,7 @@ public class Nybbles {
     /** Bits per nybble */
     private static final int BITS_PER_NYBBLE = 0;
 
-    /** Return an array of size N.
+    /** Return an array of size N. */
     public Nybbles(int N) {
         // FIXME: Change the line below
         _data = new int[0];
