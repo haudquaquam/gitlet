@@ -234,6 +234,7 @@ public class BoardTest {
         checkBoard(b0, GAME1RESULT);
         checkBoard(b1, GAME1RESULT);
         checkBoard(copyOfCleared, INITIAL);
+        System.out.println(b0);
         assertNull("winner not null", copyOfCleared.getWinner());
         assertEquals("redPieces not 2", 2, copyOfCleared.redPieces());
         assertEquals("bluePieces not 2", 2, copyOfCleared.bluePieces());
@@ -241,11 +242,12 @@ public class BoardTest {
         assertEquals("not red's move", RED, copyOfCleared.whoseMove());
         assertEquals("num moves not 0", 0, copyOfCleared.numMoves());
         assertEquals("num jumps not 0", 0, copyOfCleared.numJumps());
-
         b0.makeMove('b', '7', 'b', '5');
+        System.out.println(b0);
+        System.out.println(b1);
         checkBoard(b1, GAME1RESULT);
         assertNull("winner not null", b1.getWinner());
-        assertEquals("redPieces not 4", 4, b1.redPieces());
+        assertEquals("redPieces not 4", 4, b0.redPieces());
         assertEquals("bluePieces not 6", 6, b1.bluePieces());
 
         assertEquals("not red's move", RED, b1.whoseMove());

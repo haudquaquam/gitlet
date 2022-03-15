@@ -14,6 +14,8 @@ import java.util.function.Consumer;
 
 import static ataxx.PieceColor.*;
 import static ataxx.GameException.error;
+import static java.lang.Math.abs;
+import static java.lang.Math.max;
 
 /** An Ataxx board.   The squares are labeled by column (a char value between
  *  'a' - 2 and 'g' + 2) and row (a char value between '1' - 2 and '7'
@@ -51,7 +53,7 @@ class Board {
     /** A new, cleared board in the initial configuration. */
     Board() {
         _board = new PieceColor[EXTENDED_SIDE * EXTENDED_SIDE];
-        // FIXME
+        // FIXME :)
         setNotifier(NOP);
         clear();
     }
@@ -59,8 +61,20 @@ class Board {
     /** A board whose initial contents are copied from BOARD0, but whose
      *  undo history is clear, and whose notifier does nothing. */
     Board(Board board0) {
+        //System.out.println("copy made" + board0);
         _board = board0._board.clone();
-        // FIXME
+        _allMoves = new ArrayList<>();
+        _undoPieces = new Stack<>();
+        _undoSquares = new Stack<>();
+        _whoseMove = board0.whoseMove();
+        _numJumps = board0.numJumps();
+        _totalOpen = board0.totalOpen();
+        _winner = board0.getWinner();
+        _gameStarted = board0._gameStarted;
+        _numPieces[BLUE.ordinal()] = board0.numPieces(BLUE);
+        //System.out.println("blue pieces = " + numPieces(BLUE));
+        _numPieces[RED.ordinal()] = board0.numPieces(RED);
+        //System.out.println("red pieces = " + numPieces(RED));
         setNotifier(NOP);
     }
 
@@ -79,7 +93,30 @@ class Board {
      *  positions and no blocks. */
     void clear() {
         _whoseMove = RED;
-        // FIXME
+        _numPieces = new int[BLUE.ordinal() + 1];
+        int ext = EXTENDED_SIDE;
+        int doubleExt = EXTENDED_SIDE * 2;
+        for (int i = 0; i < _board.length; i++) {
+            int mod = i % ext;
+            if (mod == 0 || mod == 1 || mod == ext - 1 || mod == ext - 2) {
+                unrecordedSet(i, BLOCKED);
+            } else if ((i < doubleExt) || (i >= _board.length - doubleExt)) {
+                unrecordedSet(i, BLOCKED);
+            } else {
+                unrecordedSet(i, EMPTY);
+            }
+        }
+        unrecordedSet('a', '7', RED);
+        unrecordedSet('g', '7', BLUE);
+        unrecordedSet('a', '1', BLUE);
+        unrecordedSet('g', '1', RED);
+        _numPieces[BLUE.ordinal()] = 2;
+        _numPieces[RED.ordinal()] = 2;
+        _totalOpen = SIDE * SIDE;
+        _numJumps = 0;
+        _gameStarted = false;
+        _allMoves = new ArrayList<>();
+        _winner = null;
         announce();
     }
 
@@ -150,7 +187,29 @@ class Board {
 
     /** Return true iff MOVE is legal on the current board. */
     boolean legalMove(Move move) {
-        return true; // FIXME
+        if (move == null) {
+            return false;
+        }
+        if (move.isPass()) {
+            return true;
+        }
+        int moveDiff = moveDiff(move);
+        PieceColor destination = get(move.toIndex());
+        if (!(destination == EMPTY)) {
+            return false;
+        }
+        if (moveDiff > 2 || moveDiff < 1) {
+            return false;
+        }
+        if (get(move.col0(), move.row0()).compareTo(whoseMove()) != 0) {
+            return false;
+        }
+        return true;
+    }
+
+    /** Returns maximum difference in indices of rows and columns in MOVE. */
+    int moveDiff(Move move) {
+        return max(abs(move.col0() - move.col1()), abs(move.row0() - move.row1()));
     }
 
     /** Return true iff C0 R0 - C1 R1 is legal on the current board. */
@@ -161,7 +220,7 @@ class Board {
     /** Return true iff player WHO can move, ignoring whether it is
      *  that player's move and whether the game is over. */
     boolean canMove(PieceColor who) {
-        return true; // FIXME
+        return true; // FIXME DOUBLE FOR LOOP
     }
 
     /** Return the color of the player who has the next move.  The
@@ -173,14 +232,14 @@ class Board {
     /** Return total number of moves and passes since the last
      *  clear or the creation of the board. */
     int numMoves() {
-        return 0; // FIXME
+        return allMoves().size(); // FIXME :)
     }
 
     /** Return number of non-pass moves made in the current game since the
      *  last extend move added a piece to the board (or since the
      *  start of the game). Used to detect end-of-game. */
     int numJumps() {
-        return 0;  // FIXME
+        return _numJumps;  // FIXME :)
     }
 
     /** Assuming MOVE has the format "-" or "C0R0-C1R1", make the denoted
@@ -214,11 +273,50 @@ class Board {
             return;
         }
         _allMoves.add(move);
+        _gameStarted = true;
         startUndo();
         PieceColor opponent = _whoseMove.opposite();
-        // FIXME
+        // FIXME :)
+        if (move.isJump()) {
+            set(move.fromIndex(), EMPTY);
+            incrPieces(whoseMove(), -1);
+            _numJumps++;
+        } else {
+            _numJumps = 0;
+        }
+        set(move.toIndex(), whoseMove());
+        incrPieces(whoseMove(), 1);
+        // set adjacent pieces to WHOSEMOVE color
+        ArrayList<Integer> adjacentPieces = findAdjacent(move);
+        for (int index : adjacentPieces) {
+            if (get(index).isPiece() && get(index) == opponent) {
+                set(index, whoseMove());
+                incrPieces(whoseMove(), 1);
+                incrPieces(opponent, -1);
+            }
+        }
+
+        if (numPieces(opponent) == 0) {
+            _winner = _whoseMove;
+        }
+
         _whoseMove = opponent;
         announce();
+    }
+
+    /** Returns array of linearized indices of pieces adjacent to MOVE
+     *  toIndex. */
+    ArrayList<Integer> findAdjacent(Move move) {
+        ArrayList<Integer> returnList = new ArrayList<>();
+        int initialIndex = move.toIndex();
+        for (int i = -1; i < 2; i++) {
+            for (int k = -1; k < 2; k++) {
+                if (!(i == 0 && k == 0)) {
+                    returnList.add(neighbor(initialIndex, i, k));
+                }
+            }
+        }
+        return returnList;
     }
 
     /** Update to indicate that the current player passes, assuming it
@@ -254,7 +352,8 @@ class Board {
 
     /** Return true iff it is legal to place a block at C R. */
     boolean legalBlock(char c, char r) {
-        return true; // FIXME
+
+        return !_gameStarted && get(c, r) == EMPTY; // FIXME :)
     }
 
     /** Return true iff it is legal to place a block at CR. */
@@ -271,7 +370,18 @@ class Board {
         if (!legalBlock(c, r)) {
             throw error("illegal block placement");
         }
-        // FIXME
+        int origin = index('d', '4');
+        int blockX = abs('d' - c);
+        int blockY = abs('4' - r);
+        for (int i = -1; i < 2; i += 2) {
+            for (int k = -1; k < 2; k += 2) {
+                int target = neighbor(origin, i * blockX, k * blockY);
+                if (!(get(target) == BLOCKED)) {
+                    set(target, BLOCKED);
+                    _totalOpen--;
+                }
+            }
+        }
         if (!canMove(RED) && !canMove(BLUE)) {
             _winner = EMPTY;
         }
@@ -286,13 +396,13 @@ class Board {
 
     /** Return total number of unblocked squares. */
     int totalOpen() {
-        return 0; // FIXME;
+        return _totalOpen; // FIXME :)
     }
 
     /** Return a list of all moves made since the last clear (or start of
      *  game). */
     List<Move> allMoves() {
-        return new ArrayList<Move>();  // FIXME
+        return _allMoves;  // FIXME :)
     }
 
     @Override
@@ -348,6 +458,7 @@ class Board {
         }
         return out.toString();
     }
+
 
     /** Set my notifier to NOTIFY. */
     public void setNotifier(Consumer<Board> notify) {
@@ -413,5 +524,8 @@ class Board {
     private Stack<Integer> _undoSquares;
     /** Stack of pieces formally at corresponding squares in _UNDOSQUARES. */
     private Stack<PieceColor> _undoPieces;
+
+    /** Indicates whether game has started. */
+    private boolean _gameStarted;
 
 }
