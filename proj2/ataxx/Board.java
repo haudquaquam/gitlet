@@ -53,7 +53,6 @@ class Board {
     /** A new, cleared board in the initial configuration. */
     Board() {
         _board = new PieceColor[EXTENDED_SIDE * EXTENDED_SIDE];
-        // FIXME
         setNotifier(NOP);
         clear();
     }
@@ -61,7 +60,6 @@ class Board {
     /** A board whose initial contents are copied from BOARD0, but whose
      *  undo history is clear, and whose notifier does nothing. */
     Board(Board board0) {
-        //System.out.println("copy made" + board0);
         _board = board0._board.clone();
         _allMoves = new ArrayList<>();
         _undoPieces = new Stack<>();
@@ -72,9 +70,7 @@ class Board {
         _winner = board0.getWinner();
         _gameStarted = board0._gameStarted;
         _numPieces[BLUE.ordinal()] = board0.numPieces(BLUE);
-        //System.out.println("blue pieces = " + numPieces(BLUE));
         _numPieces[RED.ordinal()] = board0.numPieces(RED);
-        //System.out.println("red pieces = " + numPieces(RED));
         setNotifier(NOP);
     }
 
@@ -217,7 +213,6 @@ class Board {
             incrPieces(former, -1);
         }
         incrPieces(v, 1);
-        System.out.println("sq: " + sq + " array: " + Arrays.toString(_numPieces));
 
     }
 
@@ -267,7 +262,7 @@ class Board {
                 }
             }
         }
-        return false; // FIXME DOUBLE FOR LOOP :)
+        return false;
     }
 
     /** Return the color of the player who has the next move.  The
@@ -279,14 +274,14 @@ class Board {
     /** Return total number of moves and passes since the last
      *  clear or the creation of the board. */
     int numMoves() {
-        return allMoves().size(); // FIXME :)
+        return allMoves().size();
     }
 
     /** Return number of non-pass moves made in the current game since the
      *  last extend move added a piece to the board (or since the
      *  start of the game). Used to detect end-of-game. */
     int numJumps() {
-        return _numJumps;  // FIXME :)
+        return _numJumps;
     }
 
     /** Assuming MOVE has the format "-" or "C0R0-C1R1", make the denoted
@@ -316,6 +311,15 @@ class Board {
             throw error("Illegal move: %s", move);
         }
         if (move.isPass()) {
+            if (_allMoves.get(_allMoves.size() - 1).isPass())  {
+                if (numPieces(RED) > numPieces(BLUE)) {
+                    _winner = RED;
+                } else if (numPieces(BLUE) > numPieces(RED)) {
+                    _winner = BLUE;
+                } else {
+                    _winner = EMPTY;
+                }
+            }
             pass();
             return;
         }
@@ -323,15 +327,16 @@ class Board {
         _gameStarted = true;
         startUndo();
         PieceColor opponent = _whoseMove.opposite();
-        // FIXME :)
         if (move.isJump()) {
             set(move.fromIndex(), EMPTY);
             _numJumps++;
+            if (_numJumps >= 25) {
+                _winner = EMPTY;
+            }
         } else {
             _numJumps = 0;
         }
         set(move.toIndex(), whoseMove());
-        // set adjacent pieces to WHOSEMOVE color
         ArrayList<Integer> adjacentPieces = findAdjacent(move);
         for (int index : adjacentPieces) {
             if (get(index).isPiece() && get(index) == opponent) {
@@ -341,6 +346,8 @@ class Board {
 
         if (numPieces(opponent) == 0) {
             _winner = _whoseMove;
+        } else if (numPieces(_whoseMove) == 0) {
+            _winner = opponent;
         }
 
         _whoseMove = opponent;
@@ -366,7 +373,7 @@ class Board {
      *  is legal to do so. Passing is undoable. */
     void pass() {
         assert !canMove(_whoseMove);
-        // FIXME
+        _allMoves.add(null);
         startUndo();
         _whoseMove = _whoseMove.opposite();
         announce();
@@ -407,7 +414,7 @@ class Board {
     /** Return true iff it is legal to place a block at C R. */
     boolean legalBlock(char c, char r) {
 
-        return !_gameStarted && get(c, r) == EMPTY; // FIXME :)
+        return !_gameStarted && get(c, r) == EMPTY;
     }
 
     /** Return true iff it is legal to place a block at CR. */
@@ -450,13 +457,13 @@ class Board {
 
     /** Return total number of unblocked squares. */
     int totalOpen() {
-        return _totalOpen; // FIXME :)
+        return _totalOpen;
     }
 
     /** Return a list of all moves made since the last clear (or start of
      *  game). */
     List<Move> allMoves() {
-        return _allMoves;  // FIXME :)
+        return _allMoves;
     }
 
     @Override
