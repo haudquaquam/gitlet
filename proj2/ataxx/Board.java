@@ -53,7 +53,7 @@ class Board {
     /** A new, cleared board in the initial configuration. */
     Board() {
         _board = new PieceColor[EXTENDED_SIDE * EXTENDED_SIDE];
-        // FIXME :)
+        // FIXME
         setNotifier(NOP);
         clear();
     }
@@ -93,10 +93,11 @@ class Board {
      *  positions and no blocks. */
     void clear() {
         _whoseMove = RED;
-        _numPieces = new int[BLUE.ordinal() + 1];
+        _numPieces = new int[]{0, 0, 0, 0};
         int ext = EXTENDED_SIDE;
         int doubleExt = EXTENDED_SIDE * 2;
         for (int i = 0; i < _board.length; i++) {
+            _board[i] = null;
             int mod = i % ext;
             if (mod == 0 || mod == 1 || mod == ext - 1 || mod == ext - 2) {
                 unrecordedSet(i, BLOCKED);
@@ -110,13 +111,13 @@ class Board {
         unrecordedSet('g', '7', BLUE);
         unrecordedSet('a', '1', BLUE);
         unrecordedSet('g', '1', RED);
-        _numPieces[BLUE.ordinal()] = 2;
-        _numPieces[RED.ordinal()] = 2;
         _totalOpen = SIDE * SIDE;
         _numJumps = 0;
         _gameStarted = false;
         _allMoves = new ArrayList<>();
         _winner = null;
+        _undoSquares = new Stack<>();
+        _undoPieces = new Stack<>();
         announce();
     }
 
@@ -136,6 +137,16 @@ class Board {
     /** Return number of blue pieces on the board. */
     int bluePieces() {
         return numPieces(BLUE);
+    }
+
+    /** Return number of blocked pieces on the board. */
+    int blockedPieces() {
+        return numPieces(BLOCKED);
+    }
+
+    /** Return number of blocked pieces on the board. */
+    int emptyPieces() {
+        return numPieces(EMPTY);
     }
 
     /** Return number of COLOR pieces on the board. */
@@ -160,6 +171,18 @@ class Board {
         return _board[sq];
     }
 
+    /** Return row and column in String format of linearized index SQ. */
+    public static String getCR(int sq) {
+        int col = sq % EXTENDED_SIDE;
+        int row = sq / EXTENDED_SIDE;
+        col = (char) (col + 'a' - 2);
+        row = (char) (row + '1' - 2);
+        if (col <= 'g' && col >= 'a' && row <= '7' && row >= '0') {
+            return Character.toString(col) + Character.toString(row);
+        }
+        return null;
+    }
+
     /** Set get(C, R) to V, where 'a' <= C <= 'g', and
      *  '1' <= R <= '7'. This operation is undoable. */
     private void set(char c, char r, PieceColor v) {
@@ -170,19 +193,32 @@ class Board {
      *  undoable. */
     private void set(int sq, PieceColor v) {
         addUndo(sq);
+        updatePieceCount(sq, v);
         _board[sq] = v;
     }
 
     /** Set square at C R to V (not undoable). This is used for changing
      * contents of the board without updating the undo stacks. */
     private void unrecordedSet(char c, char r, PieceColor v) {
-        _board[index(c, r)] = v;
+        unrecordedSet(index(c, r), v);
     }
 
     /** Set square at linearized index SQ to V (not undoable). This is used
      * for changing contents of the board without updating the undo stacks. */
     private void unrecordedSet(int sq, PieceColor v) {
+        updatePieceCount(sq, v);
         _board[sq] = v;
+    }
+
+    /** Update the counts for the PieceColor of SQ and V. */
+    private void updatePieceCount(int sq, PieceColor v) {
+        PieceColor former = get(sq);
+        if (!(former == null)) {
+            incrPieces(former, -1);
+        }
+        incrPieces(v, 1);
+        System.out.println("sq: " + sq + " array: " + Arrays.toString(_numPieces));
+
     }
 
     /** Return true iff MOVE is legal on the current board. */
@@ -220,7 +256,18 @@ class Board {
     /** Return true iff player WHO can move, ignoring whether it is
      *  that player's move and whether the game is over. */
     boolean canMove(PieceColor who) {
-        return true; // FIXME DOUBLE FOR LOOP
+        for (int i = 0; i < _board.length; i++) {
+            for (int k = 0; k < _board.length; k++) {
+                String moveString = getCR(i) + "-" + getCR(k);
+                Move currentMove = Move.move(moveString);
+                if (!(currentMove == null) && get(currentMove.fromIndex()) == who) {
+                    if (legalMove(currentMove)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false; // FIXME DOUBLE FOR LOOP :)
     }
 
     /** Return the color of the player who has the next move.  The
@@ -279,20 +326,16 @@ class Board {
         // FIXME :)
         if (move.isJump()) {
             set(move.fromIndex(), EMPTY);
-            incrPieces(whoseMove(), -1);
             _numJumps++;
         } else {
             _numJumps = 0;
         }
         set(move.toIndex(), whoseMove());
-        incrPieces(whoseMove(), 1);
         // set adjacent pieces to WHOSEMOVE color
         ArrayList<Integer> adjacentPieces = findAdjacent(move);
         for (int index : adjacentPieces) {
             if (get(index).isPiece() && get(index) == opponent) {
                 set(index, whoseMove());
-                incrPieces(whoseMove(), 1);
-                incrPieces(opponent, -1);
             }
         }
 
@@ -331,7 +374,16 @@ class Board {
 
     /** Undo the last move. */
     void undo() {
-        // FIXME
+        Integer currentSquare = _undoSquares.pop();
+        PieceColor currentPiece = _undoPieces.pop();
+        while (!(currentSquare == null)) {
+            unrecordedSet(currentSquare, currentPiece);
+            currentSquare = _undoSquares.pop();
+            currentPiece = _undoPieces.pop();
+        }
+        if (_allMoves.get(_allMoves.size() - 1).isJump()) {
+            _numJumps--;
+        }
         _whoseMove = _whoseMove.opposite();
         _allMoves.remove(_allMoves.size() - 1);
         _winner = null;
@@ -342,12 +394,14 @@ class Board {
      * _undoSquares and _undoPieces instance variable comments for
      * details on how the beginning of moves are marked. */
     private void startUndo() {
-        // FIXME
+        _undoSquares.add(null);
+        _undoPieces.add(null);
     }
 
     /** Add an undo action for changing SQ on current board. */
     private void addUndo(int sq) {
-        // FIXME
+        _undoSquares.add(sq);
+        _undoPieces.add(get(sq));
     }
 
     /** Return true iff it is legal to place a block at C R. */
@@ -522,7 +576,7 @@ class Board {
     /** Stack of linearized indices of squares that have been modified and
      *  not undone. Nulls mark the beginnings of full moves. */
     private Stack<Integer> _undoSquares;
-    /** Stack of pieces formally at corresponding squares in _UNDOSQUARES. */
+    /** Stack of pieces formerly at corresponding squares in _UNDOSQUARES. */
     private Stack<PieceColor> _undoPieces;
 
     /** Indicates whether game has started. */

@@ -217,8 +217,12 @@ public class BoardTest {
     @Test
     public void testCopyAndClear() {
         Board b0 = new Board();
+        System.out.println(b0.redPieces());
         makeMoves(b0, GAME1);
+        System.out.println(b0.redPieces());
         b0.clear();
+        System.out.println(b0.redPieces());
+
         checkBoard(b0, INITIAL);
         assertNull("winner not null", b0.getWinner());
         assertEquals("redPieces not 2", 2, b0.redPieces());
@@ -335,6 +339,18 @@ public class BoardTest {
         assertEquals("wrong numJumps", 0, b.numJumps());
         assertEquals("wrong redPieces", 3, b.redPieces());
         assertEquals("wrong bluePieces", 12, b.bluePieces());
+    }
+
+    @Test
+    public void colRowConverterTest() {
+        assertEquals("a7", Board.getCR(90));
+        assertEquals("d5", Board.getCR(71));
+        assertEquals("g7", Board.getCR(96));
+        assertEquals("a1", Board.getCR(24));
+        assertNull(Board.getCR(120));
+        assertNull(Board.getCR(0));
+        assertNull(Board.getCR(1));
+        assertNull(Board.getCR(64));
     }
 
     private static final String[] GAME1 = {

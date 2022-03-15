@@ -31,8 +31,8 @@ class Move {
         _row1 = (char) (row1 + '1' - 2);
         _fromIndex = row0 * EXTENDED_SIDE + col0;
         _toIndex = row1 * EXTENDED_SIDE + col1;
-        _isExtend = (abs(col0 - col1) <= 1) && (abs(row0 - row1) <= 1); // FIXME
-        _isJump = !_isExtend && ((abs(col0 - col1) <= 2) && (abs(row0 - row1) <= 2)); // FIXME
+        _isExtend = (abs(col0 - col1) <= 1) && (abs(row0 - row1) <= 1);
+        _isJump = !_isExtend && ((abs(col0 - col1) <= 2) && (abs(row0 - row1) <= 2));
 
 
     }
