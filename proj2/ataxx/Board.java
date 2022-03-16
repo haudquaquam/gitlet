@@ -314,10 +314,13 @@ class Board {
             if (_allMoves.get(_allMoves.size() - 1).isPass())  {
                 if (numPieces(RED) > numPieces(BLUE)) {
                     _winner = RED;
+                    System.out.println("* Red wins.");
                 } else if (numPieces(BLUE) > numPieces(RED)) {
                     _winner = BLUE;
+                    System.out.println("* Blue wins.");
                 } else {
                     _winner = EMPTY;
+                    System.out.println("* Draw.");
                 }
             }
             pass();
@@ -344,10 +347,12 @@ class Board {
             }
         }
 
-        if (numPieces(opponent) == 0) {
-            _winner = _whoseMove;
-        } else if (numPieces(_whoseMove) == 0) {
-            _winner = opponent;
+        if (numPieces(RED) == 0) {
+            _winner = BLUE;
+            System.out.println("* Blue wins.");
+        } else if (numPieces(BLUE) == 0) {
+            _winner = RED;
+            System.out.println("* Red wins.");
         }
 
         _whoseMove = opponent;
