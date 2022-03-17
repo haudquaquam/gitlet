@@ -1,5 +1,7 @@
 import org.junit.Test;
 
+import java.util.Arrays;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
@@ -46,6 +48,7 @@ public class ArrayHeapTest {
         }
         assertEquals("Size should be 4", 4, hp.size());
         for (int i = 0; i < items.length; i++) {
+            System.out.println(Arrays.stream(items).toList());
             assertEquals(String.format("%d-th peek call", i),
                     items[items.length - 1 - i], hp.peek());
             assertEquals(String.format("%d-th removeMin call", i),
@@ -108,10 +111,13 @@ public class ArrayHeapTest {
         for (int i = 0; i < items.length; i++) {
             hp.insert(items[i], priorities[i]);
         }
+        System.out.println(hp);
         hp.changePriority("LLRB tree", 0);
+        System.out.println(hp);
         String[] expected = {"LLRB tree", "Hashmap", "Linked list",
                 "Deque", "Graph"};
         for (int i = 0; i < items.length; i++) {
+            System.out.println(hp);
             assertEquals(String.format("%d-th removeMin call", i),
                     expected[i], hp.removeMin());
         }
