@@ -32,7 +32,9 @@ class Move {
         _fromIndex = row0 * EXTENDED_SIDE + col0;
         _toIndex = row1 * EXTENDED_SIDE + col1;
         _isExtend = (abs(col0 - col1) <= 1) && (abs(row0 - row1) <= 1);
-        _isJump = !_isExtend && ((abs(col0 - col1) <= 2) && (abs(row0 - row1) <= 2));
+        boolean colSize = abs(col0 - col1) <= 2;
+        boolean rowSize = abs(row0 - row1) <= 2;
+        _isJump = !_isExtend && colSize && rowSize;
 
 
     }
@@ -128,7 +130,7 @@ class Move {
         if (fromIndex() == -1) {
             return "-";
         } else {
-            return col0() + "" + row0() + "-" + col1() + "" + row1(); // FIXME
+            return col0() + "" + row0() + "-" + col1() + "" + row1();
         }
     }
 

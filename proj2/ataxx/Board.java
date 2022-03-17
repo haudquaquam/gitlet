@@ -240,7 +240,9 @@ class Board {
 
     /** Returns maximum difference in indices of rows and columns in MOVE. */
     int moveDiff(Move move) {
-        return max(abs(move.col0() - move.col1()), abs(move.row0() - move.row1()));
+        int colDiff = abs(move.col0() - move.col1());
+        int rowDiff = abs(move.row0() - move.row1());
+        return max(colDiff, rowDiff);
     }
 
     /** Return true iff C0 R0 - C1 R1 is legal on the current board. */
@@ -255,9 +257,11 @@ class Board {
             for (int k = 0; k < _board.length; k++) {
                 String moveString = getCR(i) + "-" + getCR(k);
                 Move currentMove = Move.move(moveString);
-                if (!(currentMove == null) && get(currentMove.fromIndex()) == who) {
-                    if (legalMove(currentMove)) {
-                        return true;
+                if (!(currentMove == null)) {
+                    if (get(currentMove.fromIndex()) == who) {
+                        if (legalMove(currentMove)) {
+                            return true;
+                        }
                     }
                 }
             }
@@ -330,7 +334,7 @@ class Board {
         if (move.isJump()) {
             set(move.fromIndex(), EMPTY);
             _numJumps++;
-            if (_numJumps >= 25) {
+            if (_numJumps >= JUMP_LIMIT) {
                 _winner = EMPTY;
             }
         } else {
@@ -487,9 +491,11 @@ class Board {
             return false;
         }
         Board other = (Board) obj;
-        if (Arrays.equals(_board, other._board) && whoseMove().equals(((Board) obj)._whoseMove)) {
+        if (Arrays.equals(_board, other._board)) {
             if (_allMoves.equals(other._allMoves)) {
-                return true;
+                if (whoseMove().equals(((Board) obj)._whoseMove)) {
+                    return true;
+                }
             }
         }
         return false;
