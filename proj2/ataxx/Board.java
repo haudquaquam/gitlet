@@ -61,7 +61,7 @@ class Board {
      *  undo history is clear, and whose notifier does nothing. */
     Board(Board board0) {
         _board = board0._board.clone();
-        _allMoves = board0._allMoves;
+        _allMoves = new ArrayList<>(board0._allMoves);
         _undoPieces = new Stack<>();
         _undoSquares = new Stack<>();
         _whoseMove = board0.whoseMove();
