@@ -314,13 +314,10 @@ class Board {
             if (_allMoves.get(_allMoves.size() - 1).isPass())  {
                 if (numPieces(RED) > numPieces(BLUE)) {
                     _winner = RED;
-                    System.out.println("* Red wins.");
                 } else if (numPieces(BLUE) > numPieces(RED)) {
                     _winner = BLUE;
-                    System.out.println("* Blue wins.");
                 } else {
                     _winner = EMPTY;
-                    System.out.println("* Draw.");
                 }
             }
             pass();
@@ -349,10 +346,18 @@ class Board {
 
         if (numPieces(RED) == 0) {
             _winner = BLUE;
-            System.out.println("* Blue wins.");
         } else if (numPieces(BLUE) == 0) {
             _winner = RED;
-            System.out.println("* Red wins.");
+        }
+
+        if (numPieces(BLUE) + numPieces(RED) == _totalOpen) {
+            if (numPieces(RED) > numPieces(BLUE)) {
+                _winner = RED;
+            } else if (numPieces(BLUE) > numPieces(RED)) {
+                _winner = BLUE;
+            } else {
+                _winner = EMPTY;
+            }
         }
 
         _whoseMove = opponent;
@@ -482,7 +487,12 @@ class Board {
             return false;
         }
         Board other = (Board) obj;
-        return Arrays.equals(_board, other._board); // FIXME?
+        if (Arrays.equals(_board, other._board) && whoseMove().equals(((Board) obj)._whoseMove)) {
+            if (_allMoves.equals(other._allMoves)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
