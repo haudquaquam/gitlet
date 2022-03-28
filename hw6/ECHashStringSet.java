@@ -6,15 +6,17 @@ import java.util.List;
  */
 class ECHashStringSet implements StringSet {
 
+    public ECHashStringSet() {
+        bucketArray = (ArrayList<String>[]) new ArrayList[defaultNumBuckets];
+        for (int i = 0; i < bucketArray.length; i++) {
+            bucketArray[i] = new ArrayList<>();
+        }
+        bucketCount = bucketArray.length;
+    }
+
     @Override
     public void put(String s) {
-        int modIndex = s.hashCode() % bucketCount;
-        if (s.hashCode() < 0) {
-            modIndex = (s.hashCode() & 0x7fffffff) % bucketCount;
-        }
-        if (bucketArray[modIndex] == null) {
-            bucketArray[modIndex] = new ArrayList<String>();
-        }
+        int modIndex = whichBucket(s);
         bucketArray[modIndex].add(s);
         totalN++;
         if (totalN / bucketCount >= 5) {
@@ -23,7 +25,19 @@ class ECHashStringSet implements StringSet {
                 newList[i] = bucketArray[i];
             }
             bucketArray = newList;
+            bucketCount = bucketArray.length;
         }
+    }
+
+    private int whichBucket(String s) {
+        int modIndex = s.hashCode() % bucketCount;
+        if (s.hashCode() < 0) {
+            modIndex = (s.hashCode() & 0x7fffffff) % bucketCount;
+        }
+        if (bucketArray[modIndex] == null) {
+            bucketArray[modIndex] = new ArrayList<String>();
+        }
+        return modIndex;
     }
 
     @Override
@@ -43,7 +57,8 @@ class ECHashStringSet implements StringSet {
         return returnList;
     }
 
-    private ArrayList<String>[] bucketArray = new ArrayList[1];
+    private ArrayList<String>[] bucketArray;
     private int totalN;
-    private int bucketCount = 1;
+    private int bucketCount;
+    private int defaultNumBuckets = 2;
 }
