@@ -8,7 +8,7 @@ import java.util.Stack;
  * Implementation of a BST based String Set.
  * @author Rae Xin
  */
-public class BSTStringSet implements StringSet, Iterable<String> {
+public class BSTStringSet implements StringSet, Iterable<String>, SortedStringSet {
     /** Creates a new empty set. */
     public BSTStringSet() {
         _root = null;
@@ -17,8 +17,29 @@ public class BSTStringSet implements StringSet, Iterable<String> {
     @Override
     public void put(String s) {
         Node current = _root;
-        Node previous = null;
-        while (current != null && current.s != s) {
+        if (_root == null) {
+            _root = new Node(s);
+        } else {
+            while (current != null && current.s != s) {
+                int compare = s.compareTo(current.s);
+                if (compare > 0) {
+                    if (current.right == null) {
+                        current.right = new Node(s);
+                    } else {
+                        current = current.right;
+                    }
+                } else if (compare < 0) {
+                    if (current.left == null) {
+                        current.left = new Node(s);
+                    } else {
+                        current = current.left;
+                    }
+                } else {
+                    current = null;
+                }
+            }
+        }
+        /*while (current != null && current.s != s) {
             previous = current;
             int compare = s.compareTo(current.s);
             if (compare < 0) { // s is less than current.s
@@ -40,17 +61,37 @@ public class BSTStringSet implements StringSet, Iterable<String> {
             } else {
                 _root = new Node(s);
             }
-        }
+        }*/
     }
 
     @Override
     public boolean contains(String s) {
-        return false; // FIXME: PART A
+        Node current = _root;
+        while (current != null && current.s != s) {
+            int compare = s.compareTo(current.s);
+            if (compare < 0) {
+                current = current.left;
+            } else if (compare > 0) {
+                current = current.right;
+            } else {
+                current = null;
+            }
+        }
+        if (current != null && current.s.equals(s)) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @Override
     public List<String> asList() {
-        return null; // FIXME: PART A. MUST BE IN SORTED ORDER, ASCENDING
+        ArrayList returnList = new ArrayList<String>();
+        Iterator<String> newIterator = iterator();
+        while (newIterator.hasNext()) {
+            returnList.add(newIterator.next());
+        }
+        return returnList;
     }
 
 
@@ -120,9 +161,23 @@ public class BSTStringSet implements StringSet, Iterable<String> {
     }
 
     // FIXME: UNCOMMENT THE NEXT LINE FOR PART B
-    // @Override
+    @Override
     public Iterator<String> iterator(String low, String high) {
-        return null;  // FIXME: PART B (OPTIONAL)
+
+        ArrayList<String> initialArray = new ArrayList<>();
+        Stack<String> allStack = new Stack<>();
+        Iterator<String> iter = iterator();
+        while (iter.hasNext()) {
+            initialArray.add(iter.next());
+        }
+
+        for (String x: initialArray) {
+            if (x.compareTo(low) >= 0 && x.compareTo(high) <= 0) {
+                allStack.add(x);
+            }
+        }
+
+        return allStack.iterator();  // FIXME: PART B (OPTIONAL)
     }
 
 

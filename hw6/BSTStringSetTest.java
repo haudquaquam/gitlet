@@ -43,10 +43,8 @@ public class BSTStringSetTest  {
         listSet1.add("fro-yo");
         listSet1.add("grapple");
 
-        assertTrue(set1.asList().size() == 6);
+        assertTrue(set1.asList().size() == 7);
         assertTrue(set1.asList().get(4) == "energy");
         assertTrue(set1.asList().equals(listSet1));
-
-
     }
 }
