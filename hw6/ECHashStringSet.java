@@ -8,18 +8,18 @@ class ECHashStringSet implements StringSet {
 
     @Override
     public void put(String s) {
-        int modIndex = s.hashCode() % bucketArray.length;
+        int modIndex = s.hashCode() % bucketCount;
         if (s.hashCode() < 0) {
-            modIndex = (s.hashCode() & 0x7fffffff) % bucketArray.length;
+            modIndex = (s.hashCode() & 0x7fffffff) % bucketCount;
         }
         if (bucketArray[modIndex] == null) {
-            bucketArray[modIndex] = new ArrayList();
+            bucketArray[modIndex] = new ArrayList<String>();
         }
         bucketArray[modIndex].add(s);
         totalN++;
-        if (totalN / bucketArray.length >= 5) {
-            ArrayList<String>[] newList = new ArrayList[bucketArray.length * 2];
-            for (int i = 0; i < bucketArray.length; i++) {
+        if (totalN / bucketCount >= 5) {
+            ArrayList<String>[] newList = new ArrayList[bucketCount * 2];
+            for (int i = 0; i < bucketCount; i++) {
                 newList[i] = bucketArray[i];
             }
             bucketArray = newList;
@@ -28,18 +28,16 @@ class ECHashStringSet implements StringSet {
 
     @Override
     public boolean contains(String s) {
-        int modIndex = s.hashCode() % bucketArray.length;
-        return bucketArray[modIndex].contains(s);
+        int modIndex = s.hashCode() % bucketCount;
+        return bucketArray[modIndex] != null && bucketArray[modIndex].contains(s);
     }
 
     @Override
     public List<String> asList() {
         ArrayList<String> returnList = new ArrayList<>();
-        for (int i = 0; i < bucketArray.length; i++) {
+        for (int i = 0; i < bucketCount; i++) {
             if (bucketArray[i] != null) {
-                for (String s : bucketArray[i]) {
-                    returnList.add(s);
-                }
+                returnList.addAll(bucketArray[i]);
             }
         }
         return returnList;
@@ -47,4 +45,5 @@ class ECHashStringSet implements StringSet {
 
     private ArrayList<String>[] bucketArray = new ArrayList[1];
     private int totalN;
+    private int bucketCount = 1;
 }

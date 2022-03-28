@@ -26,6 +26,7 @@ public class BSTStringSetTest  {
     @Test
     public void overAllStringTest() {
         BSTStringSet set1 = new BSTStringSet();
+        BSTStringSet emptySet = new BSTStringSet();
         ArrayList listSet1 = new ArrayList<String>();
         set1.put("apple");
         set1.put("banana");
@@ -46,5 +47,6 @@ public class BSTStringSetTest  {
         assertTrue(set1.asList().size() == 7);
         assertTrue(set1.asList().get(4) == "energy");
         assertTrue(set1.asList().equals(listSet1));
+        assertFalse(emptySet.contains("hello"));
     }
 }

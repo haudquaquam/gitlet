@@ -34,4 +34,18 @@ public class ECHashStringSetTest  {
         assertTrue(set1.asList().size() == 7);
         System.out.println(set1.asList());
     }
+
+    @Test
+    public void randomTest() {
+        ECHashStringSet set1 = new ECHashStringSet();
+        ArrayList<String> correct1 = new ArrayList<>();
+        int x = 0;
+        while (x < 50) {
+            String rand = StringUtils.randomString(10);
+            set1.put(rand);
+            correct1.add(rand);
+            x++;
+        }
+        assertEquals(correct1.size(), set1.asList().size());
+    }
 }
