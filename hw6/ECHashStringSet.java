@@ -42,8 +42,8 @@ class ECHashStringSet implements StringSet {
 
     @Override
     public boolean contains(String s) {
-        int modIndex = s.hashCode() % bucketCount;
-        return bucketArray[modIndex] != null && bucketArray[modIndex].contains(s);
+        int modIndex = whichBucket(s);
+        return bucketArray[modIndex].contains(s);
     }
 
     @Override
