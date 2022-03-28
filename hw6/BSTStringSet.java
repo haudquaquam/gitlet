@@ -39,29 +39,7 @@ public class BSTStringSet implements StringSet, Iterable<String>, SortedStringSe
                 }
             }
         }
-        /*while (current != null && current.s != s) {
-            previous = current;
-            int compare = s.compareTo(current.s);
-            if (compare < 0) { // s is less than current.s
-                current = current.left;
-            } else if (compare > 0) { // s is greater than current.s
-                current = current.right;
-            } else { // s is equivalent to current.s
-                current = null;
-            }
-        }
-        if (!(current.s == s)) {
-            if (previous != null) {
-                int compare = s.compareTo(previous.s);
-                if (compare < 0) { // s is less than previous.s
-                    previous.left = new Node(s);
-                } else if (compare > 0) {
-                    previous.right = new Node(s);
-                }
-            } else {
-                _root = new Node(s);
-            }
-        }*/
+        
     }
 
     @Override
@@ -160,7 +138,6 @@ public class BSTStringSet implements StringSet, Iterable<String>, SortedStringSe
         return new BSTIterator(_root);
     }
 
-    // FIXME: UNCOMMENT THE NEXT LINE FOR PART B
     @Override
     public Iterator<String> iterator(String low, String high) {
 
@@ -177,7 +154,7 @@ public class BSTStringSet implements StringSet, Iterable<String>, SortedStringSe
             }
         }
 
-        return allStack.iterator();  // FIXME: PART B (OPTIONAL)
+        return allStack.iterator();
     }
 
 

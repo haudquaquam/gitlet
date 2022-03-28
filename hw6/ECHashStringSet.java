@@ -8,31 +8,35 @@ class ECHashStringSet implements StringSet {
 
     public ECHashStringSet() {
         bucketArray = (ArrayList<String>[]) new ArrayList[defaultNumBuckets];
-        for (int i = 0; i < bucketArray.length; i++) {
+        for (int i = 0; i < bucketCount; i++) {
             bucketArray[i] = new ArrayList<>();
         }
-        bucketCount = bucketArray.length;
     }
 
     @Override
     public void put(String s) {
         int modIndex = whichBucket(s);
-        bucketArray[modIndex].add(s);
-        totalN++;
-        if (totalN / bucketCount >= 5) {
-            ArrayList<String>[] newList = new ArrayList[bucketCount * 2];
-            for (int i = 0; i < bucketCount; i++) {
+        if (!contains(s)) {
+            bucketArray[modIndex].add(s);
+            totalN++;
+        }
+        if (totalN / bucketArray.length >= 5) {
+            ArrayList<String>[] newList = new ArrayList[bucketArray.length];
+            for (int i = 0; i < bucketArray.length / 2; i++) {
+                int index = whichBucket(s);
                 newList[i] = bucketArray[i];
             }
+            for (int k = bucketArray.length / 2; k < bucketArray.length; k++) {
+                newList[k] = new ArrayList<>();
+            }
             bucketArray = newList;
-            bucketCount = bucketArray.length;
         }
     }
 
     private int whichBucket(String s) {
-        int modIndex = s.hashCode() % bucketCount;
+        int modIndex = s.hashCode() % bucketArray.length;
         if (s.hashCode() < 0) {
-            modIndex = (s.hashCode() & 0x7fffffff) % bucketCount;
+            modIndex = (s.hashCode() & 0x7fffffff) % bucketArray.length;
         }
         if (bucketArray[modIndex] == null) {
             bucketArray[modIndex] = new ArrayList<String>();
@@ -49,7 +53,7 @@ class ECHashStringSet implements StringSet {
     @Override
     public List<String> asList() {
         ArrayList<String> returnList = new ArrayList<>();
-        for (int i = 0; i < bucketCount; i++) {
+        for (int i = 0; i < bucketArray.length; i++) {
             if (bucketArray[i] != null) {
                 returnList.addAll(bucketArray[i]);
             }

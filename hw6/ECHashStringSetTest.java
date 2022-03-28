@@ -17,11 +17,11 @@ public class ECHashStringSetTest  {
         ArrayList listSet1 = new ArrayList<String>();
         set1.put("apple");
         set1.put("banana");
-        set1.put("dog");
         set1.put("charm");
-        set1.put("grapple");
+        set1.put("dog");
         set1.put("energy");
         set1.put("fro-yo");
+        set1.put("grapple");
 
         listSet1.add("apple");
         listSet1.add("banana");
@@ -32,7 +32,6 @@ public class ECHashStringSetTest  {
         listSet1.add("grapple");
 
         assertTrue(set1.asList().size() == 7);
-        System.out.println(set1.asList());
     }
 
     @Test
@@ -46,6 +45,8 @@ public class ECHashStringSetTest  {
             correct1.add(rand);
             x++;
         }
-        assertEquals(correct1.size(), set1.asList().size());
+        set1.put("hello");
+        set1.put("hello");
+
     }
 }
