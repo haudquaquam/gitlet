@@ -24,7 +24,7 @@ class ECHashStringSet implements StringSet {
             ArrayList<String>[] newList = new ArrayList[bucketArray.length];
             for (int i = 0; i < bucketArray.length / 2; i++) {
                 int index = whichBucket(s);
-                newList[i] = bucketArray[i];
+                newList[index] = bucketArray[i];
             }
             for (int k = bucketArray.length / 2; k < bucketArray.length; k++) {
                 newList[k] = new ArrayList<>();

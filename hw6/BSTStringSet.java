@@ -39,7 +39,7 @@ public class BSTStringSet implements StringSet, Iterable<String>, SortedStringSe
                 }
             }
         }
-        
+
     }
 
     @Override
