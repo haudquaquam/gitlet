@@ -49,4 +49,23 @@ public class BSTStringSetTest  {
         assertTrue(set1.asList().equals(listSet1));
         assertFalse(emptySet.contains("hello"));
     }
+
+    @Test
+    public void bigTest1() {
+        BSTStringSet bstSet = new BSTStringSet();
+        ArrayList<String> test = new ArrayList<>();
+        int x = 0;
+        while (x < 500000) {
+            String rand = StringUtils.randomString(9);
+            bstSet.put(rand);
+            test.add(rand);
+            x++;
+        }
+
+        assertEquals(50000, bstSet.asList().size());
+        for (String s : test) {
+            assertTrue(bstSet.contains(s));
+        }
+
+    }
 }

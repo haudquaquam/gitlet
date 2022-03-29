@@ -34,8 +34,6 @@ public class BSTStringSet implements StringSet, Iterable<String>, SortedStringSe
                     } else {
                         current = current.left;
                     }
-                } else {
-                    current = null;
                 }
             }
         }
