@@ -49,4 +49,25 @@ public class ECHashStringSetTest  {
         set1.put("hello");
 
     }
+
+    @Test
+    public void compareTest() {
+        ECHashStringSet ecSet = new ECHashStringSet();
+        BSTStringSet bstSet = new BSTStringSet();
+
+        int x = 0;
+        while (x < 10) {
+            String rand = StringUtils.randomString(10);
+            ecSet.put(rand);
+            bstSet.put(rand);
+            x++;
+        }
+
+        System.out.println("BST List: " + bstSet.asList());
+        System.out.println("EC List: " + ecSet.asList());
+        assertEquals(bstSet.asList().size(), ecSet.asList().size());
+        for (String s : bstSet) {
+            assertTrue(ecSet.contains(s));
+        }
+    }
 }
