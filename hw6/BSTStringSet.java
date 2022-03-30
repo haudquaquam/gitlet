@@ -20,17 +20,19 @@ public class BSTStringSet implements StringSet, Iterable<String>, SortedStringSe
         if (_root == null) {
             _root = new Node(s);
         } else {
-            while (current != null && current.s != s) {
+            while (current != null && (!current.s.equals(s))) {
                 int compare = s.compareTo(current.s);
                 if (compare > 0) {
                     if (current.right == null) {
                         current.right = new Node(s);
+                        return;
                     } else {
                         current = current.right;
                     }
                 } else if (compare < 0) {
                     if (current.left == null) {
                         current.left = new Node(s);
+                        return;
                     } else {
                         current = current.left;
                     }
@@ -45,7 +47,7 @@ public class BSTStringSet implements StringSet, Iterable<String>, SortedStringSe
     @Override
     public boolean contains(String s) {
         Node current = _root;
-        while (current != null && current.s != s) {
+        while (current != null && (!current.s.equals(s))) {
             int compare = s.compareTo(current.s);
             if (compare < 0) {
                 current = current.left;

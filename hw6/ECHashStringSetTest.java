@@ -57,7 +57,7 @@ public class ECHashStringSetTest  {
 
         int x = 0;
         while (x < 10) {
-            String rand = StringUtils.randomString(10);
+            String rand = StringUtils.randomString(2);
             ecSet.put(rand);
             bstSet.put(rand);
             x++;
