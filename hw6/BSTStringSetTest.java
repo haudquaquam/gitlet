@@ -1,3 +1,4 @@
+
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -10,18 +11,6 @@ import java.util.List;
  * @author Rae Xin
  */
 public class BSTStringSetTest  {
-    // FIXME: Add your own tests for your BST StringSet
-
-    /*BSTStringSet set = new BSTStringSet();
-    ArrayList listSet = new ArrayList<String>();
-
-    public void setListSet(ArrayList listSet) {
-        this.listSet = listSet;
-    }
-
-    public void setSet(BSTStringSet set) {
-        this.set = set;
-    }*/
 
     @Test
     public void overAllStringTest() {
@@ -48,24 +37,5 @@ public class BSTStringSetTest  {
         assertTrue(set1.asList().get(4) == "energy");
         assertTrue(set1.asList().equals(listSet1));
         assertFalse(emptySet.contains("hello"));
-    }
-
-    @Test
-    public void bigTest1() {
-        BSTStringSet bstSet = new BSTStringSet();
-        ArrayList<String> test = new ArrayList<>();
-        int x = 0;
-        while (x < 500000) {
-            String rand = StringUtils.randomString(9);
-            bstSet.put(rand);
-            test.add(rand);
-            x++;
-        }
-
-        assertEquals(50000, bstSet.asList().size());
-        for (String s : test) {
-            assertTrue(bstSet.contains(s));
-        }
-
     }
 }
