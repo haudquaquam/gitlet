@@ -4,6 +4,7 @@
 
 package ataxx;
 
+import java.util.ArrayList;
 import java.util.Random;
 
 import static ataxx.PieceColor.*;
@@ -75,9 +76,9 @@ class AI extends Player {
      *  on BOARD, does not set _foundMove. */
     private int minMax(Board board, int depth, boolean saveMove, int sense,
                        int alpha, int beta) {
-        /* We use WINNING_VALUE + depth as the winning value so as to favor
+        /* We use WINNING_VALUE + depth as the winning value to favor
          * wins that happen sooner rather than later (depth is larger the
-         * fewer moves have been made. */
+         * fewer moves have been made). */
         if (depth == 0 || board.getWinner() != null) {
             return staticScore(board, WINNING_VALUE + depth);
         }
@@ -85,14 +86,47 @@ class AI extends Player {
         Move best;
         best = null;
         int bestScore;
-        bestScore = 0; // FIXME
+        bestScore = -INFTY; // FIXME
+/*
+        if (sense == 1) { // find maximal value
+            bestScore = -INFTY;
+            ArrayList<Move> allMyMoves = findLegalMoves(board, myColor());
+            for (Move currentMove : allMyMoves) {
+                Board newBoardCopy = new Board(board);
+                newBoardCopy.makeMove(currentMove);
+                bestScore = staticScore()
+            }
+        }*/
 
-        // FIXME
+        ArrayList<Move> allMyMoves = findLegalMoves(board, myColor());
+        best = allMyMoves.get(_random.nextInt() % allMyMoves.size());
+
 
         if (saveMove) {
             _lastFoundMove = best;
         }
         return bestScore;
+    }
+
+    /** Helper method that finds all legal moves of a PLAYER on a BOARD.
+     * **/
+    private ArrayList<Move> findLegalMoves(Board board, PieceColor color) {
+        ArrayList<Move> returnArray = new ArrayList<>();
+        for (char c = 'a'; c <= 'g'; c++) {
+            for (char r = '1'; r <= '7'; r++) {
+                for (char c2 = 'a'; c2 <= 'g'; c2++) {
+                    for (char r2 = '1'; r2 <= '7'; r2++) {
+                        Move currentMove = Move.move(c, r, c2, r2);
+                        if (board.legalMove(currentMove)) {
+                            if (board.get(c, r).compareTo(color) == 0) {
+                                returnArray.add(currentMove);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return returnArray;
     }
 
     /** Return a heuristic value for BOARD.  This value is +- WINNINGVALUE in
@@ -106,8 +140,7 @@ class AI extends Player {
             default -> 0;
             };
         }
-
-        return 0; // FIXME
+        return board.redPieces() - board.bluePieces();
     }
 
     /** Pseudo-random number generator for move computation. */
