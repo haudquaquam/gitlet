@@ -340,7 +340,13 @@ class Board {
             _numJumps = 0;
         }
         if (_numJumps >= JUMP_LIMIT) {
-            _winner = EMPTY;
+            if (numPieces(RED) > numPieces(BLUE)) {
+                _winner = RED;
+            } else if (numPieces(BLUE) > numPieces(RED)) {
+                _winner = BLUE;
+            } else {
+                _winner = EMPTY;
+            }
         }
         set(move.toIndex(), whoseMove());
         ArrayList<Integer> adjacentPieces = findAdjacent(move);

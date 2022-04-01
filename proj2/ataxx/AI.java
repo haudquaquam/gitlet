@@ -74,11 +74,10 @@ class AI extends Player {
      *  DEPTH levels.  Searching at level 0 simply returns a static estimate
      *  of the board value and does not set _foundMove. If the game is over
      *  on BOARD, does not set _foundMove. */
-    /*private int minMax(Board board, int depth, boolean saveMove, int sense,
+
+    private int minMax(Board board, int depth, boolean saveMove, int sense,
                        int alpha, int beta) {
-        *//* We use WINNING_VALUE + depth as the winning value to favor
-         * wins that happen sooner rather than later (depth is larger the
-         * fewer moves have been made). *//*
+
         if (depth == 0 || board.getWinner() != null) {
             return staticScore(board, WINNING_VALUE + depth);
         }
@@ -87,110 +86,6 @@ class AI extends Player {
         int bestScore;
 
         if (sense == 1) {
-            bestScore = -INFTY;
-            ArrayList<Move> allMyMoves = findLegalMoves(board, RED);
-            for (Move currentMove : allMyMoves) {
-                Board newBoardCopy = new Board(board);
-                newBoardCopy.makeMove(currentMove);
-                int currentScore = minMax(newBoardCopy, depth - 1,
-                        false, -1, alpha, beta);
-                if (currentScore > bestScore) {
-                    best = currentMove;
-                    bestScore = currentScore;
-                    alpha = max(alpha, bestScore);
-                    if (alpha >= beta) {
-                        break;
-                    }
-                }
-                if (currentMove.isPass()) {
-                    best = currentMove;
-                }
-            }
-        } else {
-            bestScore = INFTY;
-            ArrayList<Move> allMyMoves = findLegalMoves(board, BLUE);
-            for (Move currentMove : allMyMoves) {
-                Board newBoardCopy = new Board(board);
-                newBoardCopy.makeMove(currentMove);
-                int currentScore = minMax(newBoardCopy, depth - 1,
-                        false, 1, alpha, beta);
-                if (currentScore < bestScore) {
-                    best = currentMove;
-                    bestScore = currentScore;
-                    beta = min(beta, bestScore);
-                    if (alpha >= beta) {
-                        break;
-                    }
-                }
-                if (currentMove.isPass()) {
-                    best = currentMove;
-                }
-            }
-        }
-        if (saveMove) {
-            _lastFoundMove = best;
-        }
-        return bestScore;
-    }
-
-    *//** Helper method that finds all legal moves of a COLOR on a BOARD.
-     * Returns an ArrayList of all legal moves. **//*
-    private ArrayList<Move> findLegalMoves(Board board, PieceColor color) {
-        ArrayList<Move> returnArray = new ArrayList<>();
-        for (char c = 'a'; c <= 'g'; c++) {
-            for (char r = '1'; r <= '7'; r++) {
-                if (board.get(c, r).compareTo(color) == 0) {
-                    for (char c2 = 'a'; c2 <= 'g'; c2++) {
-                        for (char r2 = '1'; r2 <= '7'; r2++) {
-                            Move currentMove = Move.move(c, r, c2, r2);
-                            if (board.legalMove(currentMove)) {
-                                returnArray.add(currentMove);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        if (board.legalMove(Move.pass())) {
-            returnArray.add(Move.pass());
-        }
-        return returnArray;
-    }
-
-    *//** Return a heuristic value for BOARD.  This value is +- WINNINGVALUE in
-     *  won positions, and 0 for ties. *//*
-    private int staticScore(Board board, int winningValue) {
-        PieceColor winner = board.getWinner();
-        if (winner != null) {
-            return switch (winner) {
-            case RED -> winningValue;
-            case BLUE -> -winningValue;
-            default -> 0;
-            };
-        }
-        return board.redPieces() - board.bluePieces();
-    }
-
-    *//** Pseudo-random number generator for move computation. *//*
-    private Random _random = new Random();
-}
-*/
-
-    private int minMax(Board board, int depth, boolean saveMove, int sense,
-                       int alpha, int beta) {
-        /* We use WINNING_VALUE + depth as the winning value to favor
-         * wins that happen sooner rather than later (depth is larger the
-         * fewer moves have been made). */
-        if (depth == 0 || board.getWinner() != null) {
-            return staticScore(board, WINNING_VALUE + depth);
-        }
-
-        Move best = null;
-        int bestScore;
-
-
-
-        if (sense == 1) { // find maximal value
             bestScore = -INFTY;
             ArrayList<Move> allMyMoves = findLegalMoves(board, RED);
             for (Move currentMove : allMyMoves) {
@@ -207,7 +102,7 @@ class AI extends Player {
                     }
                 }
             }
-        } else { // sense = -1, find minimum value
+        } else {
             bestScore = INFTY;
             ArrayList<Move> allMyMoves = findLegalMoves(board, BLUE);
             for (Move currentMove : allMyMoves) {
@@ -231,7 +126,8 @@ class AI extends Player {
         return bestScore;
     }
 
-    /** Helper method that finds all legal moves of a PLAYER on a BOARD.
+    /** Helper method that finds all legal moves of a COLOR on a BOARD. Return
+     * ArrayList of Moves that are legal.
      * **/
     private ArrayList<Move> findLegalMoves(Board board, PieceColor color) {
         ArrayList<Move> returnArray = new ArrayList<>();
