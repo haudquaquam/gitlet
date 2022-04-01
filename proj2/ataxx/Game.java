@@ -101,7 +101,7 @@ class Game {
         if (_board.legalMove(move)) {
             _board.makeMove(move);
         } else {
-            throw error("illegal move");
+            throw error("illegal move: %s", moveStr);
         }
         if (_verbose) {
             printBoard();

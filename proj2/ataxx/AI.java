@@ -86,9 +86,7 @@ class AI extends Player {
         Move best = null;
         int bestScore;
 
-
-
-        if (sense == 1) { // find maximal value
+        if (sense == 1) {
             bestScore = -INFTY;
             ArrayList<Move> allMyMoves = findLegalMoves(board, RED);
             for (Move currentMove : allMyMoves) {
@@ -104,8 +102,11 @@ class AI extends Player {
                         break;
                     }
                 }
+                if (currentMove.isPass()) {
+                    best = currentMove;
+                }
             }
-        } else { // sense = -1, find minimum value
+        } else {
             bestScore = INFTY;
             ArrayList<Move> allMyMoves = findLegalMoves(board, BLUE);
             for (Move currentMove : allMyMoves) {
@@ -121,6 +122,9 @@ class AI extends Player {
                         break;
                     }
                 }
+                if (currentMove.isPass()) {
+                    best = currentMove;
+                }
             }
         }
         if (saveMove) {
@@ -129,8 +133,7 @@ class AI extends Player {
         return bestScore;
     }
 
-    /** Helper method that finds all legal moves of a PLAYER on a BOARD.
-     * **/
+    /** Helper method that finds all legal moves of a COLOR on a BOARD. **/
     private ArrayList<Move> findLegalMoves(Board board, PieceColor color) {
         ArrayList<Move> returnArray = new ArrayList<>();
         for (char c = 'a'; c <= 'g'; c++) {
@@ -146,6 +149,9 @@ class AI extends Player {
                     }
                 }
             }
+        }
+        if (returnArray.isEmpty()) {
+            returnArray.add(Move.pass());
         }
         return returnArray;
     }

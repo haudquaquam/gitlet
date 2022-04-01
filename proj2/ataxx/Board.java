@@ -218,24 +218,28 @@ class Board {
 
     /** Return true iff MOVE is legal on the current board. */
     boolean legalMove(Move move) {
+        if (_winner != EMPTY) {
+            return false;
+        }
         if (move == null) {
             return false;
         }
         if (move.isPass()) {
-            return true;
+            return !canMove(_whoseMove);
         }
-        int moveDiff = moveDiff(move);
         PieceColor destination = get(move.toIndex());
-        if (!(destination == EMPTY)) {
+        PieceColor start = get(move.fromIndex());
+
+        if (start != whoseMove()) {
+            return false;
+        } else {
+            if (move.isJump() || move.isExtend()) {
+                if (destination == EMPTY) {
+                    return true;
+                }
+            }
             return false;
         }
-        if (moveDiff > 2 || moveDiff < 1) {
-            return false;
-        }
-        if (get(move.col0(), move.row0()).compareTo(whoseMove()) != 0) {
-            return false;
-        }
-        return true;
     }
 
     /** Returns maximum difference in indices of rows and columns in MOVE. */
@@ -254,12 +258,11 @@ class Board {
      *  that player's move and whether the game is over. */
     boolean canMove(PieceColor who) {
         for (int i = 0; i < _board.length; i++) {
-            for (int k = 0; k < _board.length; k++) {
-                String moveString = getCR(i) + "-" + getCR(k);
-                Move currentMove = Move.move(moveString);
-                if (!(currentMove == null)) {
-                    if (get(currentMove.fromIndex()) == who) {
-                        if (legalMove(currentMove)) {
+            if (_board[i] == who) {
+                for (int k = i - 2; k <= i + 2; k++) {
+                    for (int m = k - EXTENDED_SIDE * 2;
+                         m <= k + EXTENDED_SIDE * 2; m += 11) {
+                        if (_board[m] == EMPTY) {
                             return true;
                         }
                     }
