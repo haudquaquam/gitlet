@@ -83,25 +83,46 @@ class AI extends Player {
             return staticScore(board, WINNING_VALUE + depth);
         }
 
-        Move best;
-        best = null;
+        Move best = null;
         int bestScore;
-        bestScore = -INFTY; // FIXME
-/*
+
+
+
         if (sense == 1) { // find maximal value
             bestScore = -INFTY;
-            ArrayList<Move> allMyMoves = findLegalMoves(board, myColor());
+            ArrayList<Move> allMyMoves = findLegalMoves(board, RED);
             for (Move currentMove : allMyMoves) {
                 Board newBoardCopy = new Board(board);
                 newBoardCopy.makeMove(currentMove);
-                bestScore = staticScore()
+                int currentScore = minMax(newBoardCopy, depth - 1,
+                        false, -1, alpha, beta);
+                if (currentScore > bestScore) {
+                    best = currentMove;
+                    bestScore = currentScore;
+                    alpha = max(alpha, bestScore);
+                    if (alpha >= beta) {
+                        break;
+                    }
+                }
             }
-        }*/
-
-        ArrayList<Move> allMyMoves = findLegalMoves(board, myColor());
-        best = allMyMoves.get(_random.nextInt() % allMyMoves.size());
-
-
+        } else { // sense = -1, find minimum value
+            bestScore = INFTY;
+            ArrayList<Move> allMyMoves = findLegalMoves(board, BLUE);
+            for (Move currentMove : allMyMoves) {
+                Board newBoardCopy = new Board(board);
+                newBoardCopy.makeMove(currentMove);
+                int currentScore = minMax(newBoardCopy, depth - 1,
+                        false, 1, alpha, beta);
+                if (currentScore < bestScore) {
+                    best = currentMove;
+                    bestScore = currentScore;
+                    beta = min(beta, bestScore);
+                    if (alpha >= beta) {
+                        break;
+                    }
+                }
+            }
+        }
         if (saveMove) {
             _lastFoundMove = best;
         }
@@ -114,11 +135,11 @@ class AI extends Player {
         ArrayList<Move> returnArray = new ArrayList<>();
         for (char c = 'a'; c <= 'g'; c++) {
             for (char r = '1'; r <= '7'; r++) {
-                for (char c2 = 'a'; c2 <= 'g'; c2++) {
-                    for (char r2 = '1'; r2 <= '7'; r2++) {
-                        Move currentMove = Move.move(c, r, c2, r2);
-                        if (board.legalMove(currentMove)) {
-                            if (board.get(c, r).compareTo(color) == 0) {
+                if (board.get(c, r).compareTo(color) == 0) {
+                    for (char c2 = 'a'; c2 <= 'g'; c2++) {
+                        for (char r2 = '1'; r2 <= '7'; r2++) {
+                            Move currentMove = Move.move(c, r, c2, r2);
+                            if (board.legalMove(currentMove)) {
                                 returnArray.add(currentMove);
                             }
                         }
