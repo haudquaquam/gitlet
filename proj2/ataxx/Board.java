@@ -315,7 +315,8 @@ class Board {
             throw error("Illegal move: %s", move);
         }
         if (move.isPass()) {
-            if (_allMoves.get(_allMoves.size() - 1).isPass())  {
+            Move prevMove = _allMoves.get(_allMoves.size() - 1);
+            if (prevMove == null)  {
                 if (numPieces(RED) > numPieces(BLUE)) {
                     _winner = RED;
                 } else if (numPieces(BLUE) > numPieces(RED)) {
