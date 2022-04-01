@@ -157,9 +157,9 @@ class AI extends Player {
         PieceColor winner = board.getWinner();
         if (winner != null) {
             return switch (winner) {
-                case RED -> winningValue;
-                case BLUE -> -winningValue;
-                default -> 0;
+            case RED -> winningValue;
+            case BLUE -> -winningValue;
+            default -> 0;
             };
         }
         return board.redPieces() - board.bluePieces();

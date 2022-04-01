@@ -312,9 +312,7 @@ class Board {
 
     /** Make the MOVE on this Board, assuming it is legal. */
     void makeMove(Move move) {
-        if (!legalMove(move)) {
-            throw error("Illegal move: %s", move);
-        }
+        if (!legalMove(move)) throw error("Illegal move: %s", move);
         if (move.isPass()) {
             Move prevMove = _allMoves.get(_allMoves.size() - 1);
             if (prevMove == Move.PASS)  {
@@ -355,13 +353,11 @@ class Board {
                 set(index, whoseMove());
             }
         }
-
         if (numPieces(RED) == 0 && numPieces(BLUE) > 0) {
             _winner = BLUE;
         } else if (numPieces(BLUE) == 0) {
             _winner = RED;
         }
-
         if (numPieces(BLUE) + numPieces(RED) == _totalOpen) {
             if (numPieces(RED) > numPieces(BLUE)) {
                 _winner = RED;
@@ -371,7 +367,6 @@ class Board {
                 _winner = EMPTY;
             }
         }
-
         _whoseMove = opponent;
         announce();
     }
@@ -617,5 +612,4 @@ class Board {
 
     /** Indicates whether game has started. */
     private boolean _gameStarted;
-
 }
