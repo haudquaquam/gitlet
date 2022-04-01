@@ -312,7 +312,9 @@ class Board {
 
     /** Make the MOVE on this Board, assuming it is legal. */
     void makeMove(Move move) {
-        if (!legalMove(move)) throw error("Illegal move: %s", move);
+        if (!legalMove(move)) {
+            throw error("Illegal move: %s", move);
+        }
         if (move.isPass()) {
             Move prevMove = _allMoves.get(_allMoves.size() - 1);
             if (prevMove == Move.PASS)  {
@@ -337,15 +339,7 @@ class Board {
         } else if (!move.isPass()) {
             _numJumps = 0;
         }
-        if (_numJumps >= JUMP_LIMIT) {
-            if (numPieces(RED) > numPieces(BLUE)) {
-                _winner = RED;
-            } else if (numPieces(BLUE) > numPieces(RED)) {
-                _winner = BLUE;
-            } else {
-                _winner = EMPTY;
-            }
-        }
+        checkJumpWin();
         set(move.toIndex(), whoseMove());
         ArrayList<Integer> adjacentPieces = findAdjacent(move);
         for (int index : adjacentPieces) {
@@ -369,6 +363,19 @@ class Board {
         }
         _whoseMove = opponent;
         announce();
+    }
+
+    /** Checks if there is a Jump win. **/
+    private void checkJumpWin() {
+        if (_numJumps >= JUMP_LIMIT) {
+            if (numPieces(RED) > numPieces(BLUE)) {
+                _winner = RED;
+            } else if (numPieces(BLUE) > numPieces(RED)) {
+                _winner = BLUE;
+            } else {
+                _winner = EMPTY;
+            }
+        }
     }
 
     /** Returns array of linearized indices of pieces adjacent to MOVE

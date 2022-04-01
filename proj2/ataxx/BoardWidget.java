@@ -7,8 +7,9 @@ package ataxx;
 import ucb.gui2.Pad;
 
 import java.awt.Color;
-import java.awt.Graphics2D;
 import java.awt.BasicStroke;
+import java.awt.Graphics2D;
+
 
 import java.awt.event.MouseEvent;
 
@@ -77,12 +78,26 @@ class BoardWidget extends Pad  {
         g.setColor(BLANK_COLOR);
         g.fillRect(0, 0, _dim, _dim);
 
+        int side = SIDE;
+        int dim = SQDIM;
 
+        for (char col = 'a'; col < 'a' + side; col++) {
+            for (char row = '1'; row < 'a' + side; row++) {
+                int lat = (col - 'a') * dim;
+                int lon = (side - (row - '1')) * dim;
+                if (_model.get(col, row) == RED) {
+                    g.setColor(RED_COLOR);
+                } else if (_model.get(col, row) == BLUE) {
+                    g.setColor(BLUE_COLOR);
+                }
+            }
+        }
     }
 
     /** Draw a block centered at (CX, CY) on G. */
     void drawBlock(Graphics2D g, int cx, int cy) {
-
+        int[] lats = new int[4];
+        int[] lons = new int[4];
     }
 
     /** Clear selected block, if any, and turn off block mode. */
@@ -109,7 +124,6 @@ class BoardWidget extends Pad  {
                     _commandQueue.offer("block c3");
                 } else {
                     if (_selectedCol != 0) {
-
 
                         _selectedCol = _selectedRow = 0;
                     } else {
