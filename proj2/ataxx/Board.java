@@ -218,9 +218,6 @@ class Board {
 
     /** Return true iff MOVE is legal on the current board. */
     boolean legalMove(Move move) {
-        if (_winner != EMPTY) {
-            return false;
-        }
         if (move == null) {
             return false;
         }
@@ -258,11 +255,12 @@ class Board {
      *  that player's move and whether the game is over. */
     boolean canMove(PieceColor who) {
         for (int i = 0; i < _board.length; i++) {
-            if (_board[i] == who) {
-                for (int k = i - 2; k <= i + 2; k++) {
-                    for (int m = k - EXTENDED_SIDE * 2;
-                         m <= k + EXTENDED_SIDE * 2; m += 11) {
-                        if (_board[m] == EMPTY) {
+            for (int k = 0; k < _board.length; k++) {
+                String moveString = getCR(i) + "-" + getCR(k);
+                Move currentMove = Move.move(moveString);
+                if (!(currentMove == null)) {
+                    if (get(currentMove.fromIndex()) == who) {
+                        if (legalMove(currentMove)) {
                             return true;
                         }
                     }
@@ -319,7 +317,7 @@ class Board {
         }
         if (move.isPass()) {
             Move prevMove = _allMoves.get(_allMoves.size() - 1);
-            if (prevMove == null)  {
+            if (prevMove == Move.PASS)  {
                 if (numPieces(RED) > numPieces(BLUE)) {
                     _winner = RED;
                 } else if (numPieces(BLUE) > numPieces(RED)) {
@@ -338,11 +336,11 @@ class Board {
         if (move.isJump()) {
             set(move.fromIndex(), EMPTY);
             _numJumps++;
-            if (_numJumps >= JUMP_LIMIT) {
-                _winner = EMPTY;
-            }
-        } else {
+        } else if (!move.isPass()) {
             _numJumps = 0;
+        }
+        if (_numJumps >= JUMP_LIMIT) {
+            _winner = EMPTY;
         }
         set(move.toIndex(), whoseMove());
         ArrayList<Integer> adjacentPieces = findAdjacent(move);
@@ -352,7 +350,7 @@ class Board {
             }
         }
 
-        if (numPieces(RED) == 0) {
+        if (numPieces(RED) == 0 && numPieces(BLUE) > 0) {
             _winner = BLUE;
         } else if (numPieces(BLUE) == 0) {
             _winner = RED;
@@ -391,7 +389,7 @@ class Board {
      *  is legal to do so. Passing is undoable. */
     void pass() {
         assert !canMove(_whoseMove);
-        _allMoves.add(null);
+        _allMoves.add(Move.PASS);
         startUndo();
         _whoseMove = _whoseMove.opposite();
         announce();
