@@ -138,11 +138,12 @@ class GUI extends TopLevel implements View, CommandSource, Reporter {
 
     @Override
     public void announceWin(PieceColor player) {
-
+        // FIXME
     }
 
     @Override
     public void announceMove(Move move, PieceColor player) {
+        _board.makeMove(move);
     }
 
     @Override

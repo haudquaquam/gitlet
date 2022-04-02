@@ -6,10 +6,7 @@ package ataxx;
 
 import ucb.gui2.Pad;
 
-import java.awt.Color;
-import java.awt.BasicStroke;
-import java.awt.Graphics2D;
-
+import java.awt.*;
 
 import java.awt.event.MouseEvent;
 
@@ -27,6 +24,8 @@ class BoardWidget extends Pad  {
     static final int SQDIM = 50;
     /** Number of squares on a side. */
     static final int SIDE = Board.SIDE;
+    /** Number of squares on a board's extended side. */
+    static final int EXTENDED_SIDE = Board.EXTENDED_SIDE;
     /** Radius of circle representing a piece. */
     static final int PIECE_RADIUS = 15;
     /** Dimension of a block. */
@@ -78,26 +77,38 @@ class BoardWidget extends Pad  {
         g.setColor(BLANK_COLOR);
         g.fillRect(0, 0, _dim, _dim);
 
-        int side = SIDE;
-        int dim = SQDIM;
+        g.setColor(Color.DARK_GRAY);
+        int side = SIDE * SQDIM;
+        g.drawRect(0, 0, side, side);
+        for (int col = 0; col < side + 1; col += SQDIM) {
+            g.drawLine(0, col, side, col);
+        }
+        for (int row = 0; row < side + 1; row += SQDIM) {
+            g.drawLine(row, 0, row, side);
+        }
 
-        for (char col = 'a'; col < 'a' + side; col++) {
-            for (char row = '1'; row < 'a' + side; row++) {
-                int lat = (col - 'a') * dim;
-                int lon = (side - (row - '1')) * dim;
-                if (_model.get(col, row) == RED) {
-                    g.setColor(RED_COLOR);
-                } else if (_model.get(col, row) == BLUE) {
-                    g.setColor(BLUE_COLOR);
-                }
+        for (int i = 0; i < EXTENDED_SIDE * EXTENDED_SIDE; i++) {
+            int col = i / EXTENDED_SIDE - 2;
+            int row = i % EXTENDED_SIDE - 2;
+            if (_model.get(i) == RED) {
+                col = 6 - col;
+                g.setColor(RED_COLOR);
+                g.fillOval(row * SQDIM, col * SQDIM, SQDIM, SQDIM);
+            } else if (_model.get(i) == BLUE) {
+                col = 6 - col;
+                g.setColor(BLUE_COLOR);
+                g.fillOval(row * SQDIM, col * SQDIM, SQDIM, SQDIM);
+            } else if (_model.get(i) == BLOCKED) {
+                drawBlock(g, row, col);
             }
         }
     }
 
     /** Draw a block centered at (CX, CY) on G. */
     void drawBlock(Graphics2D g, int cx, int cy) {
-        int[] lats = new int[4];
-        int[] lons = new int[4];
+        g.setColor(BLOCK_COLOR);
+        cy = 6 - cy;
+        g.fillRect(SQDIM * cx, SQDIM * cy, SQDIM, SQDIM);
     }
 
     /** Clear selected block, if any, and turn off block mode. */
@@ -119,12 +130,17 @@ class BoardWidget extends Pad  {
             mouseCol = (char) (x / SQDIM + 'a');
             mouseRow = (char) ((SQDIM * SIDE - y) / SQDIM + '1');
             if (mouseCol >= 'a' && mouseCol <= 'g'
-                && mouseRow >= '1' && mouseRow <= '7') {
+                    && mouseRow >= '1' && mouseRow <= '7') {
                 if (_blockMode) {
-                    _commandQueue.offer("block c3");
+                    String blockString = "block " + mouseCol + mouseRow;
+                    _commandQueue.offer(blockString); // FIXME
                 } else {
                     if (_selectedCol != 0) {
-
+                        String moveString = _selectedCol + "" + _selectedRow +
+                                "-" + mouseCol + mouseRow;
+                        System.out.println(moveString);
+                        _commandQueue.offer(moveString);
+                        reset();
                         _selectedCol = _selectedRow = 0;
                     } else {
                         _selectedCol = mouseCol;
