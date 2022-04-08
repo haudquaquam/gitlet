@@ -1,6 +1,7 @@
 package capers;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.Serializable;
 
 import static capers.Utils.readObject;
@@ -9,10 +10,10 @@ import static capers.Utils.writeObject;
 /** Represents a dog that can be serialized.
  * @author Sean Dooher
 */
-public class Dog implements Serializable { // FIXME
+public class Dog implements Serializable { // FIXME!
 
     /** Folder that dogs live in. */
-    static final File DOG_FOLDER = new File("dogs"); // FIXME!
+    static final File DOG_FOLDER = new File(".capers", "dogs"); // FIXME!
 
     /**
      * Creates a dog object with the specified parameters.
@@ -34,7 +35,8 @@ public class Dog implements Serializable { // FIXME
      * @return Dog read from file
      */
     public static Dog fromFile(String name) {
-        File file = new File(name);
+        name = name + ".txt";
+        File file = new File(DOG_FOLDER, name);
         return readObject(file, Dog.class);
     }
 
@@ -51,7 +53,13 @@ public class Dog implements Serializable { // FIXME
      * Saves a dog to a file for future use.
      */
     public void saveDog() {
-        File dogs = new File(DOG_FOLDER, _name);
+        String fileName = _name + ".txt";
+        File dogs = new File(DOG_FOLDER, fileName);
+        try {
+            dogs.createNewFile();
+        } catch(IOException e) {
+            System.out.println("exception oh no");
+        }
         writeObject(dogs, this);
     }
 

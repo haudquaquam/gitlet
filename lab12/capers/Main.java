@@ -59,8 +59,10 @@ public class Main {
             break;
         case "dog":
             makeDog(args);
+            break;
         case "birthday":
             celebrateBirthday(args);
+            break;
         default:
             exitWithError(String.format("Unknown command: %s", args[0]));
         }
@@ -97,10 +99,9 @@ public class Main {
     public static void writeStory(String[] args) {
         validateNumArgs("story", args, 2);
         File story = new File(CAPERS_FOLDER, "story.txt");
-        String[] newLineArgs = new String[2];
-        newLineArgs[0] = args[1];
-        newLineArgs[1] = "\n";
-        writeContents(story, args[1]);
+        String original = readContentsAsString(story);
+        String concat = original + args[1] + "\n";
+        writeContents(story, concat);
         System.out.println(readContentsAsString(story));
     }
 
@@ -113,7 +114,8 @@ public class Main {
     public static void makeDog(String[] args) {
         validateNumArgs("dog", args, 4);
         Dog currentDog = new Dog(args[1], args[2], parseInt(args[3]));
-
+        currentDog.saveDog();
+        System.out.println(currentDog.toString());
     }
 
     /**
