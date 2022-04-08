@@ -1,6 +1,12 @@
 package capers;
 
+import javax.imageio.IIOException;
 import java.io.File;
+import java.io.IOException;
+
+import static capers.Utils.readContentsAsString;
+import static capers.Utils.writeContents;
+import static java.lang.Integer.parseInt;
 
 /** Canine Capers: A Gitlet Prelude.
  * @author Sean Dooher
@@ -10,7 +16,9 @@ public class Main {
     static final File CWD = new File(".");
 
     /** Main metadata folder. */
-    static final File CAPERS_FOLDER = null; // FIXME
+    static final File CAPERS_FOLDER = new File(CWD, ".capers"); // FIXME!
+
+
 
     /**
      * Runs one of three commands:
@@ -49,7 +57,10 @@ public class Main {
         case "story":
             writeStory(args);
             break;
-        // FIXME
+        case "dog":
+            makeDog(args);
+        case "birthday":
+            celebrateBirthday(args);
         default:
             exitWithError(String.format("Unknown command: %s", args[0]));
         }
@@ -67,7 +78,15 @@ public class Main {
      *
      */
     public static void setupPersistence() {
-        // FIXME
+        try {
+            CAPERS_FOLDER.mkdir();
+            File dogs = new File(CAPERS_FOLDER, "dogs");
+            dogs.mkdir();
+            File story = new File(CAPERS_FOLDER, "story.txt");
+            story.createNewFile();
+        } catch (IOException e) {
+            System.out.println(e + " exception caught! :(");
+        }
     }
 
     /**
@@ -77,7 +96,12 @@ public class Main {
      */
     public static void writeStory(String[] args) {
         validateNumArgs("story", args, 2);
-        // FIXME
+        File story = new File(CAPERS_FOLDER, "story.txt");
+        String[] newLineArgs = new String[2];
+        newLineArgs[0] = args[1];
+        newLineArgs[1] = "\n";
+        writeContents(story, args[1]);
+        System.out.println(readContentsAsString(story));
     }
 
     /**
@@ -88,7 +112,8 @@ public class Main {
      */
     public static void makeDog(String[] args) {
         validateNumArgs("dog", args, 4);
-        // FIXME
+        Dog currentDog = new Dog(args[1], args[2], parseInt(args[3]));
+
     }
 
     /**
@@ -99,7 +124,9 @@ public class Main {
      */
     public static void celebrateBirthday(String[] args) {
         validateNumArgs("birthday", args, 2);
-        // FIXME
+        Dog birthdayBoy = Dog.fromFile(args[1]);
+        birthdayBoy.haveBirthday();
+        birthdayBoy.saveDog();
     }
 
     /**
