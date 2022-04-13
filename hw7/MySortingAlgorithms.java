@@ -1,4 +1,7 @@
 import java.util.Arrays;
+import java.util.regex.Pattern;
+
+import static java.lang.Math.max;
 
 /**
  * Note that every sorting algorithm takes in an argument k. The sorting 
@@ -42,7 +45,18 @@ public class MySortingAlgorithms {
     public static class InsertionSort implements SortingAlgorithm {
         @Override
         public void sort(int[] array, int k) {
-            // FIXME
+            int index = 1;
+            while (index < k) {
+                int small = max(index - 1, 0);
+                if (array[index] < array[small]) {
+                    int tempVal = array[index];
+                    array[index] = array[small];
+                    array[small] = tempVal;
+                    index = small;
+                } else {
+                    index++;
+                }
+            }
         }
 
         @Override
@@ -60,7 +74,19 @@ public class MySortingAlgorithms {
     public static class SelectionSort implements SortingAlgorithm {
         @Override
         public void sort(int[] array, int k) {
-            // FIXME
+            for (int i = 0; i < k; i++) {
+                int min = array[i];
+                int minIndex = i;
+                for (int j = i; j < k; j++) {
+                    if (array[j] < min) {
+                        min = array[j];
+                        minIndex = j;
+                    }
+                }
+                int tempVal = min;
+                array[minIndex] = array[i];
+                array[i] = tempVal;
+            }
         }
 
         @Override
@@ -77,10 +103,49 @@ public class MySortingAlgorithms {
     public static class MergeSort implements SortingAlgorithm {
         @Override
         public void sort(int[] array, int k) {
-            // FIXME
+            if (k > 1 && array.length >= 1) {
+                int mid = k / 2;
+                int[] left = Arrays.copyOfRange(array, 0, mid);
+                int[] right = Arrays.copyOfRange(array, mid, k);
+                merge(array, left, right, k);
+            } else {
+                System.out.println("array passed into sort func is empty");
+            }
         }
 
-        // may want to add additional methods
+        public void merge(int[] original, int[] array1, int[] array2, int k) {
+            int index1 = 0;
+            int index2 = 0;
+            int len1 = array1.length;
+            int len2 = array2.length;
+            int[] newArray = new int[original.length];
+            System.arraycopy(original, 0, newArray, 0, original.length);
+            if (len1 > 1) sort(array1, len1);
+            if (len2 > 1) sort(array2, len2);
+            while (index1 < len1 && index2 < len2) {
+                if (array1[index1] > array2[index2]) {
+                    newArray[index1 + index2] = array2[index2];
+                    index2++;
+                } else {
+                    newArray[index1 + index2] = array1[index1];
+                    index1++;
+                }
+            }
+            if (index1 >= len1) {
+                while (index2 < len2) {
+                    newArray[index1 + index2] = array2[index2];
+                    index2++;
+                }
+            } else if (index2 >= len2) {
+                while (index1 < len1) {
+                    newArray[index1 + index2] = array1[index1];
+                    index1++;
+                }
+            }
+
+            System.arraycopy(newArray, 0, original, 0, original.length);
+        }
+
 
         @Override
         public String toString() {
@@ -148,7 +213,60 @@ public class MySortingAlgorithms {
     public static class LSDSort implements SortingAlgorithm {
         @Override
         public void sort(int[] a, int k) {
-            // FIXME
+            /*String[] binArray = new String[a.length];
+            int maxStringLen = 0;
+            for (int i = 0; i < k; i++) {
+                binArray[i] = Integer.toBinaryString(a[i]);
+                if (binArray[i].length() > maxStringLen) {
+                    maxStringLen = binArray[i].length();
+                }
+            }
+            for (int i = 0; i < k; i++) {
+                while (binArray[i].length() < maxStringLen) {
+                    binArray[i] = "0" + binArray[i];
+                }
+
+            }*/
+            int max = 0;
+            for (int i = 0; i < k; i++) {
+                max = Math.max(max, a[i]);
+            }
+            int numDigits = 0;
+            int tens = 1;
+            while (max >= tens) {
+                numDigits++;
+                tens *= 10;
+            }
+            int places = 1;
+            while (numDigits > 0) {
+                countSort(a, places, k);
+                places *= 10;
+                numDigits--;
+            }
+
+        }
+
+        private void countSort(int[] a, int places, int k) {
+            int range = 10;
+            int[] frequency = new int[range];
+            int[] sorted = new int[a.length];
+
+            for (int i = 0; i < k; i++) {
+                int digit = (a[i] / places) % range;
+                frequency[digit]++;
+            }
+
+            for (int i = 1; i < range; i++) {
+                frequency[i] += frequency[i - 1];
+            }
+
+            for (int i = k - 1; i >= 0; i--) {
+                int digit = (a[i] / places) % range;
+                sorted[frequency[digit] - 1] = a[i];
+                frequency[digit]--;
+            }
+
+            System.arraycopy(sorted, 0, a, 0, k);
         }
 
         @Override
