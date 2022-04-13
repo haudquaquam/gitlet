@@ -9,7 +9,10 @@ public class Sum {
     public static boolean sumsTo(int[] A, int[] B, int m) {
         int[] arr = B;
         int[] oth = A;
-        if (A.length < B.length) arr = A; oth = B;
+        if (A.length < B.length) {
+            arr = A;
+            oth = B;
+        }
         for (int i = 0; i < arr.length; i++) {
             int diff = m - arr[i];
             if (Arrays.binarySearch(oth, diff) >= 0) {
