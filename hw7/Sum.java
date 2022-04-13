@@ -13,6 +13,7 @@ public class Sum {
             arr = A;
             oth = B;
         }
+        Arrays.sort(oth);
         for (int i = 0; i < arr.length; i++) {
             int diff = m - arr[i];
             if (Arrays.binarySearch(oth, diff) >= 0) {
