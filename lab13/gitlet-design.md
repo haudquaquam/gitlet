@@ -65,7 +65,8 @@ This class implements Comparable. It represents a blob and will determine
 whether two Blobs are equivalent (referring to same state of same file).
 
 #### Fields
-1. final BLOB_FILE: 
+1. final BLOB_FILE: pointer to the actual file that this Blob represents.
+2. final BLOB_HASH: the SHA-1 hash generated to be this Blob's file name.
 
 ## 2. Algorithms
 
@@ -95,6 +96,60 @@ preferred. Here are some formatting tips:
   
 * Try to clearly mark titles or names of classes with white space or
   some other symbols.
+
+### Init.java
+1. Check for existing repo (existing .gitlet directory) in current directory.
+2. Create new .gitlet directory
+3. Make initial default commit
+4. Make master branch
+5. Point HEAD to initial commit (place commit info into .gitlet/HEAD file)
+
+### Add Command
+1. Ensure specified file exists
+2. Remove already-staged file of same name if it exists (use remove command)
+3. Check to see if current file is the same as version in current commit (same hash) if so, do nothing
+4. If not, then add file to the addStage.
+5. Remove file from removeStage if it is present there.
+
+### Commit.java
+1. Check that addStage or removeStage are not empty.
+2. Check that there is a commit message present
+3. Copies all Blobs from parent commit into current commit HashMap
+4. Add new files from stage, using file names as keys, replacing duplicates
+5. Remove files staged for removal from HashMap.
+6. Clear all stages.
+7. Serialize Blobs and store them in .gitlet/commits/blobs directory. Each Blob has
+its own file with its SHA-1 hash as filename, contents are serialized contents of file.
+8. Add commit file to .gitlet/commits with list of hashes (Blob filenames) of Blobs as well as metadata
+9. Update HEAD to point to this commit.
+
+### Remove Command
+1. Ensure specified file is either staged or present in HEAD commit
+2. If file is in addStage, remove from there.
+3. If file is tracked in HEAD, add file to removeStage (add filename and hash)
+4. Delete file from working directory if it is tracked in HEAD
+
+### Log Command
+1. Print out each commit's info, then going to its parent and repeating
+
+### Global-Log Command
+1. Print out all commits and their relevant info from the commit folder.
+
+### Find Command
+1. Iterate through all commits in the .gitlet/commits folder and print out
+hashes of all commits that have matching message. 
+2. If there are no such commits, throw error.
+
+### Status Command
+1. Check for current branch, list all branches with a `*` before current branch.
+2. List filenames from addStage
+3. List filenames from removeStage
+4. If there are any files in working directory that are not staged for add or removal
+and do not exist in HEAD (unique hash not in stage or HEAD), list them
+5. List any newly created files (filenames that are not in HEAD)
+
+### Checkout Command
+#### Checkout -- [filename]
 
 ## 3. Persistence
 
