@@ -1,5 +1,7 @@
 package gitlet;
 
+import org.antlr.v4.runtime.tree.Tree;
+
 import java.sql.Array;
 import java.util.ArrayList;
 import java.util.List;
@@ -8,15 +10,18 @@ import java.util.TreeMap;
 
 public class Stage {
 
-    private Map<String, List<Blob>> _stage;
-    private static final String ADD_STR = "add";
-    private static final String REMOVE_STR = "remove";
+    private Map<String, String> _stage; //map between filename and -B-l-o-b- SHA-1 hash
 
-    public Stage(String filename, String flag) {
+    public Stage() {
         _stage = new TreeMap<>();
-        _stage.put(ADD_STR, new ArrayList<>());
-        _stage.put(REMOVE_STR, new ArrayList<>());
+    }
 
+    public Map<String, String> getStage() {
+        return _stage;
+    }
+
+    public void addToStage(String filename, String flag) {
+        //logic for adding stuff to stage
     }
 
 }
