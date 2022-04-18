@@ -59,6 +59,10 @@ public class Commit implements Serializable {
         writeObject(commitFile , this);
     }
 
+    public boolean validCommit() {
+        return (!(fetchAddStage().getStage().isEmpty() && fetchRemoveStage().getStage().isEmpty()));
+    }
+
     public void processStage() {
         Commit parent1, parent2 = null;
 
@@ -70,10 +74,6 @@ public class Commit implements Serializable {
                 }
             }
             // copies parent _commitMap over to current Commit's _commitMap
-
-            if (fetchAddStage().getStage().isEmpty() && fetchRemoveStage().getStage().isEmpty()) {
-                throw error("No changes added to the commit.");
-            }
             _commitMap.putAll(_addStage.getStage());
             for (Map.Entry<String, String> entry : _removeStage.getStage().entrySet()) {
                 _commitMap.remove(entry.getKey(), entry.getValue());

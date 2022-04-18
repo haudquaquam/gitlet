@@ -29,11 +29,15 @@ public class Stage implements Serializable {
     }
 
     public static void removeBlob(Blob blob) {
+        Stage updatedAddStage = fetchAddStage();
+        Stage updatedRemoveStage = fetchRemoveStage();
         if (fetchAddStage().getStage().containsKey(blob.getFileName())) {
-            fetchAddStage().getStage().remove(blob.getFileName());
+            updatedAddStage.getStage().remove(blob.getFileName());
+            writeObject(ADD_STAGE_FILE, updatedAddStage);
         } else if (fetchHeadCommit().contains(blob)) {
-            fetchRemoveStage().getStage().put(blob.getFileName(), blob.getHash());
+            updatedRemoveStage.getStage().put(blob.getFileName(), blob.getHash());
             restrictedDelete(blob.getFileName());
+            writeObject(REMOVE_STAGE_FILE, updatedRemoveStage);
         } else {
             throw error("No reason to remove the file.");
         }

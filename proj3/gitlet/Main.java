@@ -61,13 +61,17 @@ public class Main {
                 break;
             case "commit":
                 if (!(args.length > 1)) {
-                    throw error("Incorrect operands.");
+                    throw error("Please enter a commit message.");
                 }
                 Commit newCommit = new Commit(args[1], new Date(),
                         fetchHeadCommit().getHash());
-                processCommit(newCommit);
-                newCommit.processStage();
-                updateHead(newCommit);
+                if (!newCommit.validCommit()) {
+                    throw error("No changes added to the commit.");
+                } else {
+                    processCommit(newCommit);
+                    newCommit.processStage();
+                    updateHead(newCommit);
+                }
                 break;
             case "add":
                 if (args.length != 2) {
