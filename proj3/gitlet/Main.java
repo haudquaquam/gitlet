@@ -2,10 +2,13 @@ package gitlet;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import static gitlet.Utils.error;
-import static gitlet.Utils.sha1;
+import static gitlet.Branch.setNewBranchHead;
+import static gitlet.Stage.addBlob;
+import static gitlet.Stage.removeBlob;
+import static gitlet.Utils.*;
 
 /** Driver class for Gitlet, the tiny stupid version-control system.
  *  @author Rae Xin
@@ -16,46 +19,96 @@ public class Main {
     public static final File CWD = new File(".");
 
     /** Main metadata folder. */
-    public static final File GITLET_FOLDER = new File(CWD, ".gitlet");
+    public static final File GITLET_FOLDER =
+            new File(CWD, ".gitlet");
 
     /** HEAD text file that stores HEAD pointer to current commit. */
-    public static final File HEAD_FILE = new File(GITLET_FOLDER, "HEAD.txt");
+    public static final File HEAD_FILE =
+            new File(GITLET_FOLDER, "HEAD.txt");
 
     /** File that holds information about all branches. */
-    public static final File BRANCHES_FILE = new File(GITLET_FOLDER, "branches.txt");
+    public static final File BRANCHES_FILE =
+            new File(GITLET_FOLDER, "branches.txt");
+
+    public static final File HEAD_BRANCHES_FILE =
+            new File(GITLET_FOLDER, "HEAD_branch.txt");
 
     /** Folder that holds all Commit files. */
-    public static final File COMMITS_FOLDER = new File(GITLET_FOLDER, "commits");
+    public static final File COMMITS_FOLDER =
+            new File(GITLET_FOLDER, "commits");
 
     /** Folder that holds all Blob files. */
-    public static final File BLOBS_FOLDER = new File(COMMITS_FOLDER, "blobs");
+    public static final File BLOBS_FOLDER =
+            new File(COMMITS_FOLDER, "blobs");
 
-    public static final Stage ADD_STAGE = new Stage();
+    public static final File ADD_STAGE_FILE =
+            new File(GITLET_FOLDER, "add_stage.txt");
 
-    public static final Stage REMOVE_STAGE = new Stage();
+    public static final File REMOVE_STAGE_FILE =
+            new File(GITLET_FOLDER, "remove_stage.txt");
+
+    public static String HEAD_BRANCH_NAME;
 
     /** Usage: java gitlet.Main ARGS, where ARGS contains
      *  <COMMAND> <OPERAND> .... */
     public static void main(String... args) {
         if (args.length == 0) {
-
+            throw error("Please enter a command.");
         }
         switch (args[0]) {
             case "init":
                 initializeRepo();
                 break;
             case "commit":
+                if (!(args.length > 1)) {
+                    throw error("Incorrect operands.");
+                }
+                Commit newCommit = new Commit(args[1], new Date(),
+                        fetchHeadCommit().getHash());
+                processCommit(newCommit);
+                newCommit.processStage();
+                updateHead(newCommit);
+                break;
             case "add":
+                if (args.length != 2) {
+                    throw error("Incorrect operands.");
+                }
+                File addFile = new File(CWD, args[1]);
+                if (!addFile.exists()) {
+                    throw error("File does not exist.");
+                }
+                stageForAddition(addFile);
+                break;
             case "rm":
+                if (args.length != 2) {
+                    throw error("Incorrect operands.");
+                }
+                File removeFile = new File(CWD, args[1]);
+                if (!removeFile.exists()) {
+                    throw error("File does not exist.");
+                }
+                stageForRemoval(removeFile);
+                break;
             case "log":
+                displayLog();
+                break;
             case "global-log":
+                break;
             case "find":
+                break;
             case "status":
+                break;
             case "checkout":
+                break;
             case "branch":
+                break;
             case "rm-branch":
+                break;
             case "reset":
+                break;
             case "merge":
+            default:
+                throw error("No command with that name exists.");
         }
     }
 
@@ -67,11 +120,17 @@ public class Main {
                 BRANCHES_FILE.createNewFile();
                 COMMITS_FOLDER.mkdir();
                 BLOBS_FOLDER.mkdir();
+                HEAD_BRANCHES_FILE.createNewFile();
+                ADD_STAGE_FILE.createNewFile();
+                REMOVE_STAGE_FILE.createNewFile();
+                clearAddStage();
+                clearRemoveStage();
                 Date epoch = new Date(0);
                 String commitHash = processCommit("initial commit",
-                        epoch, ADD_STAGE, REMOVE_STAGE, null);
+                        epoch, null);
 
                 updateBranch("master", commitHash);
+                setNewBranchHead("master");
                 // put commit hash into branches and head
 
             } else {
@@ -83,21 +142,23 @@ public class Main {
         }
     }
 
-    public static String processCommit(String message, Date timestamp, Stage addStage,
-                                     Stage removeStage, String parent) {
-        Commit commit = new Commit(message, timestamp, ADD_STAGE, REMOVE_STAGE, parent);
+    public static String processCommit(String message, Date timestamp,
+                                       String parent) {
+        Commit commit = new Commit(message, timestamp, parent);
         return processCommit(commit);
     }
 
-    public static String processCommit(String message, Date timestamp, Stage stage,
+
+    /*public static String processCommit(String message, Date timestamp, Stage stage,
                                      Stage removeStage, String parent, String parent2) {
-        Commit commit = new Commit(message, timestamp, ADD_STAGE, REMOVE_STAGE, parent, parent2);
+        Commit commit = new Commit(message, timestamp, ADD_STAGE_FILE, REMOVE_STAGE_FILE, parent, parent2);
         return processCommit(commit);
-    }
-
+    }*/
     public static String processCommit(Commit commit) {
-
-        return commit.getHash();
+        String hash = commit.getHash();
+        commit.exportCommit();
+        updateHead(commit);
+        return hash;
     }
 
     public static void updateBranch(String branchName, String commitHash) {
@@ -105,11 +166,63 @@ public class Main {
         newBranch.exportBranch();
     }
 
-    public static void updateHead() {
-
+    public static void updateHead(Commit newCommit) {
+        writeObject(HEAD_FILE, newCommit);
     }
 
-    public static void fetchHead() {
+    public static Commit fetchHeadCommit() {
+        return readObject(HEAD_FILE, Commit.class);
+    }
+
+    public static void stageForAddition(File file) {
+        Blob blob = new Blob(file);
+        addBlob(blob);
+    }
+
+    public static void stageForRemoval(File file) {
+        Blob blob = new Blob(file);
+        removeBlob(blob);
+    }
+
+    public static Stage fetchAddStage() {
+        return readObject(ADD_STAGE_FILE, Stage.class);
+    }
+
+    public static Stage fetchRemoveStage() {
+        return readObject(REMOVE_STAGE_FILE, Stage.class);
+    }
+
+    public static void clearAddStage() {
+        Stage empty = new Stage();
+        writeObject(ADD_STAGE_FILE, empty);
+    }
+
+    public static void clearRemoveStage() {
+        Stage empty = new Stage();
+        writeObject(REMOVE_STAGE_FILE, empty);
+    }
+
+    private static void displayLog() {
+        Commit currentCommit = fetchHeadCommit();
+        while (currentCommit != null) {
+            System.out.println("===");
+            System.out.println("commit " + currentCommit.getHash());
+            System.out.println("Date: " + currentCommit.getDate());
+            System.out.println(currentCommit.getMessage());
+            System.out.println();
+            if (!currentCommit.hasParent()) {
+                break;
+            }
+            currentCommit = currentCommit.getParentCommit();
+        }
+    }
+
+    /** Format: Thu Nov 9 17:01:33 2017 -0800
+     * */
+    public static String formatDate(Date date) {
+        SimpleDateFormat formatter =
+                new SimpleDateFormat("E MMM dd HH:mm:ss yyyy Z");
+        return formatter.format(date);
 
     }
 

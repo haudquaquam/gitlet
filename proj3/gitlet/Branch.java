@@ -1,10 +1,13 @@
 package gitlet;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Map;
+import java.util.TreeMap;
 
-import static gitlet.Main.BRANCHES_FILE;
-import static gitlet.Utils.error;
+import static gitlet.Main.*;
+import static gitlet.Utils.*;
 
 public class Branch implements Serializable {
 
@@ -15,40 +18,42 @@ public class Branch implements Serializable {
     }
 
     public Branch(String branchName, String commitHash) {
+        if (branchName.equals("master")) {
+            _branchMap = new TreeMap<>();
+            exportBranch();
+            setNewBranchHead("master");
+        }
 
-        var branch = importBranch();
-        _branchMap = branch.getMap();
+        _branchMap = importBranch().getMap();
 
-        if (!(_branchMap == null) && !_branchMap.containsKey(branchName)) { // check that BRANCHES_FILE Branch doesn't already have this branch listed
+        if (!_branchMap.containsKey(branchName)) { // check that BRANCHES_FILE Branch doesn't already have this branch listed
             _branchMap.put(branchName, commitHash);
         } else {
             throw error("A branch with that name already exists.");
         }
+
+
     }
 
     public Branch importBranch() {
-        Branch branch;
-        try {
-            ObjectInputStream inp =
-                    new ObjectInputStream(new FileInputStream(BRANCHES_FILE));
-            branch = (Branch) inp.readObject();
-            inp.close();
-
-        } catch (IOException | ClassNotFoundException e) {
-            branch = null;
-            e.printStackTrace();
-        }
-        return branch;
+        return readObject(BRANCHES_FILE, Branch.class);
     }
 
     public void exportBranch() {
-        try {
-            ObjectOutputStream out =
-                    new ObjectOutputStream(new FileOutputStream(BRANCHES_FILE));
-            out.writeObject(this);
-            out.close();
-        } catch (IOException e) {
+        byte[] bytes = serialize(this);
+        writeContents(BRANCHES_FILE, bytes);
+    }
+
+    public static void setNewBranchHead(String branchName) {
+        HEAD_BRANCH_NAME = branchName;
+        try (PrintWriter out = new PrintWriter(HEAD_BRANCHES_FILE)) {
+            out.println(branchName);
+        } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
+    }
+
+    public String getHeadBranchName() {
+        return readContentsAsString(HEAD_BRANCHES_FILE);
     }
 }

@@ -3,9 +3,9 @@ package gitlet;
 import java.io.*;
 import java.util.*;
 
-import static gitlet.Main.BRANCHES_FILE;
-import static gitlet.Main.COMMITS_FOLDER;
-import static gitlet.Utils.sha1;
+import static gitlet.Main.*;
+import static gitlet.Utils.*;
+import java.util.Formatter;
 
 public class Commit implements Serializable {
 
@@ -19,20 +19,21 @@ public class Commit implements Serializable {
     private final ArrayList<String> defaultKeys = new ArrayList<>
             (List.of(MESSAGE_STR, TIMESTAMP_STR, PARENT_STR, PARENT2_STR));
 
-    public Commit(String message, Date timestamp, Stage addStage,
-                  Stage removeStage, String parent, String parent2) {
-        _addStage = addStage;
-        _removeStage = removeStage;
+    public Commit(String message, Date timestamp, String parent, String parent2) {
+        _addStage = fetchAddStage();
+        _removeStage = fetchRemoveStage();
         _commitMap = new TreeMap<>();
+        if (message.isEmpty()) {
+            throw error("Please enter a commit message.");
+        }
         _commitMap.put(MESSAGE_STR, message);
-        _commitMap.put(TIMESTAMP_STR, timestamp.toString());
+        _commitMap.put(TIMESTAMP_STR, formatDate(timestamp));
         _commitMap.put(PARENT_STR, parent);
         _commitMap.put(PARENT2_STR, parent2);
     }
 
-    public Commit(String message, Date timestamp, Stage addStage,
-                  Stage removeStage, String parent) {
-        this(message, timestamp, addStage, removeStage, parent, null);
+    public Commit(String message, Date timestamp, String parent) {
+        this(message, timestamp, parent, null);
     }
 /*
     static void processStage() {
@@ -42,40 +43,78 @@ public class Commit implements Serializable {
     public String getHash() {
         String hashID = "";
         for (Map.Entry<String, String> entry : _commitMap.entrySet()) {
-            hashID = hashID.concat(entry.getValue());
+            hashID = hashID + entry.getValue();
         }
         return sha1(hashID);
     }
 
     public Commit importCommit(String commitHash) {
-        Commit commit;
-        try {
-            ObjectInputStream inp =
-                    new ObjectInputStream(new FileInputStream
-                            (COMMITS_FOLDER + File.pathSeparator + commitHash));
-            commit = (Commit) inp.readObject();
-            inp.close();
-
-        } catch (IOException | ClassNotFoundException e) {
-            commit = null;
-            e.printStackTrace();
-        }
-        return commit;
+        File commitFile = new File(COMMITS_FOLDER, commitHash);
+        return readObject(commitFile, Commit.class);
     }
 
-    public void exportCommit(String commitHash) {
-        try {
-            ObjectOutputStream out =
-                    new ObjectOutputStream(new FileOutputStream
-                            (COMMITS_FOLDER + File.pathSeparator + commitHash));
-            out.writeObject(this);
-            out.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public void exportCommit() {
+        String commitHash = this.getHash();
+        File commitFile = new File(COMMITS_FOLDER, commitHash);
+        writeObject(commitFile , this);
     }
 
-    private void processAddStage() {
+    public void processStage() {
+        Commit parent1, parent2 = null;
+
+        if (_commitMap.get(PARENT_STR) != null) { // NOT initial commit
+            parent1 = importCommit(_commitMap.get(PARENT_STR));
+            for (Map.Entry<String, String> entry : parent1._commitMap.entrySet()) {
+                if (!defaultKeys.contains(entry.getKey())) {
+                    _commitMap.put(entry.getKey(), entry.getValue());
+                }
+            }
+            // copies parent _commitMap over to current Commit's _commitMap
+
+            if (fetchAddStage().getStage().isEmpty() && fetchRemoveStage().getStage().isEmpty()) {
+                throw error("No changes added to the commit.");
+            }
+            _commitMap.putAll(_addStage.getStage());
+            for (Map.Entry<String, String> entry : _removeStage.getStage().entrySet()) {
+                _commitMap.remove(entry.getKey(), entry.getValue());
+            }
+        } else {
+            System.out.println("should not be processing stage of initial commit!");
+        }
+        clearAddStage();
+        clearRemoveStage();
+        /*if (_commitMap.get(PARENT2_STR) != null) {
+            parent2 = importCommit(_commitMap.get(PARENT2_STR));
+        }*/
+    }
+
+    public boolean contains(Blob blob) {
+        String blobFileName = blob.getFileName();
+        String blobHash = blob.getHash();
+        return _commitMap.containsKey(blobFileName) && _commitMap.containsValue(blobHash);
+    }
+
+    public boolean hasParent() {
+        return (_commitMap.get(PARENT_STR) != null);
+    }
+
+    public String getDate() {
+        return _commitMap.get(TIMESTAMP_STR);
+    }
+
+    public String getMessage() {
+        return _commitMap.get(MESSAGE_STR);
+    }
+
+    public String getParentHash() {
+        return _commitMap.get(PARENT_STR);
+    }
+
+    public Commit getParentCommit() {
+        return importCommit(getParentHash());
+    }
+
+    /*private void processRemoveStage() {
         Commit parent1, parent2 = null;
 
         if (_commitMap.get(PARENT_STR) != null) {
@@ -87,8 +126,5 @@ public class Commit implements Serializable {
             }
             _commitMap.putAll(_addStage.getStage());
         }
-        /*if (_commitMap.get(PARENT2_STR) != null) {
-            parent2 = importCommit(_commitMap.get(PARENT2_STR));
-        }*/
-    }
+    }*/
 }
