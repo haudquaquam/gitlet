@@ -3,9 +3,12 @@ package gitlet;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.Map;
+import java.util.regex.Pattern;
 
-import static gitlet.Branch.setNewBranchHead;
+import static gitlet.Branch.*;
 import static gitlet.Stage.addBlob;
 import static gitlet.Stage.removeBlob;
 import static gitlet.Utils.*;
@@ -97,8 +100,10 @@ public class Main {
                 displayLog();
                 break;
             case "global-log":
+                displayGlobalLog();
                 break;
             case "find":
+                findAllCommitsByMessage(args[1]);
                 break;
             case "status":
                 break;
@@ -209,11 +214,7 @@ public class Main {
     private static void displayLog() {
         Commit currentCommit = fetchHeadCommit();
         while (currentCommit != null) {
-            System.out.println("===");
-            System.out.println("commit " + currentCommit.getHash());
-            System.out.println("Date: " + currentCommit.getDate());
-            System.out.println(currentCommit.getMessage());
-            System.out.println();
+            printCommit(currentCommit);
             if (!currentCommit.hasParent()) {
                 break;
             }
@@ -230,4 +231,42 @@ public class Main {
 
     }
 
+    public static void printCommit(Commit commit) {
+        System.out.println("===");
+        System.out.println("commit " + commit.getHash());
+        System.out.println("Date: " + commit.getDate());
+        System.out.println(commit.getMessage());
+        System.out.println();
+    }
+
+    private static void displayGlobalLog() {
+        ArrayList<String> listFileNames = new ArrayList<>(plainFilenamesIn(COMMITS_FOLDER));
+        for (String hash : listFileNames) {
+            Commit currentCommit = Commit.importCommit(hash);
+            printCommit(currentCommit);
+        }
+    }
+
+    private static void findAllCommitsByMessage(String message) {
+        ArrayList<String> listFileNames = new ArrayList<>(plainFilenamesIn(COMMITS_FOLDER));
+        int foundCommits = 0;
+        for (String hash : listFileNames) {
+            Commit currentCommit = Commit.importCommit(hash);
+            if (currentCommit.getMessage().equals(message)) {
+                System.out.println(currentCommit.getHash());
+                foundCommits++;
+            }
+        }
+        if (foundCommits == 0) {
+            throw error("Found no commit with that message.");
+        }
+    }
+
+    private static void displayStatus() {
+        Branch branch = importBranches();
+        ArrayList<String> branchNameArray = new ArrayList<>(branch.getMap().values());
+        String headBranchName = getHeadBranchName();
+        int index = 0;
+
+    }
 }

@@ -41,14 +41,14 @@ public class Commit implements Serializable {
     }*/
 
     public String getHash() {
-        String hashID = "";
+        String hashID = "commit";
         for (Map.Entry<String, String> entry : _commitMap.entrySet()) {
             hashID = hashID + entry.getValue();
         }
         return sha1(hashID);
     }
 
-    public Commit importCommit(String commitHash) {
+    public static Commit importCommit(String commitHash) {
         File commitFile = new File(COMMITS_FOLDER, commitHash);
         return readObject(commitFile, Commit.class);
     }

@@ -1,8 +1,6 @@
 package gitlet;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -24,7 +22,7 @@ public class Branch implements Serializable {
             setNewBranchHead("master");
         }
 
-        _branchMap = importBranch().getMap();
+        _branchMap = importBranches().getMap();
 
         if (!_branchMap.containsKey(branchName)) { // check that BRANCHES_FILE Branch doesn't already have this branch listed
             _branchMap.put(branchName, commitHash);
@@ -35,7 +33,7 @@ public class Branch implements Serializable {
 
     }
 
-    public Branch importBranch() {
+    public static Branch importBranches() {
         return readObject(BRANCHES_FILE, Branch.class);
     }
 
@@ -53,7 +51,7 @@ public class Branch implements Serializable {
         }
     }
 
-    public String getHeadBranchName() {
+    public static String getHeadBranchName() {
         return readContentsAsString(HEAD_BRANCHES_FILE);
     }
 }

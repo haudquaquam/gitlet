@@ -5,6 +5,7 @@ import java.io.Serializable;
 import java.util.Map;
 import java.util.TreeMap;
 
+import static gitlet.Blob.exportBlob;
 import static gitlet.Main.*;
 import static gitlet.Utils.*;
 
@@ -25,6 +26,7 @@ public class Stage implements Serializable {
             Stage updatedStage = fetchAddStage();
             updatedStage.getStage().put(blob.getFileName(), blob.getHash());
             writeObject(ADD_STAGE_FILE, updatedStage);
+            exportBlob(blob);
         }
     }
 
