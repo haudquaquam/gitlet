@@ -70,13 +70,11 @@ public class Main {
                     throw error("Please enter a commit message.");
                 }
                 Commit newCommit = new Commit(args[1], new Date(),
-                        fetchHeadCommit().getHash());
+                        fetchHeadCommitHash());
                 if (!newCommit.validCommit()) {
                     throw error("No changes added to the commit.");
                 } else {
                     processCommit(newCommit);
-                    newCommit.processStage();
-                    updateHead(newCommit);
                 }
                 break;
             case "add":
@@ -109,12 +107,12 @@ public class Main {
                 findAllCommitsByMessage(args[1]);
                 break;
             case "status":
+                displayStatus();
                 break;
             case "checkout":
                 if (args.length < 2 || args.length > 4) {
                     throw error("Incorrect operands.");
                 }
-
                 if (args[1].equals("--")) {
                     checkoutFile(fetchHeadCommit(), args[2]);
                 } else if (args[2].equals("--")) {
@@ -134,6 +132,7 @@ public class Main {
             case "reset":
                 break;
             case "merge":
+                break;
             default:
                 throw error("No command with that name exists.");
         }
@@ -184,8 +183,9 @@ public class Main {
     }*/
     public static String processCommit(Commit commit) {
         String hash = commit.getHash();
+        commit.processStage();
         commit.exportCommit();
-        updateHead(commit);
+        updateHeadCommit(commit);
         return hash;
     }
 
@@ -194,12 +194,16 @@ public class Main {
         newBranch.exportBranch();
     }
 
-    public static void updateHead(Commit newCommit) {
+    public static void updateHeadCommit(Commit newCommit) {
         writeObject(HEAD_FILE, newCommit);
     }
 
     public static Commit fetchHeadCommit() {
         return readObject(HEAD_FILE, Commit.class);
+    }
+
+    public static String fetchHeadCommitHash() {
+        return fetchHeadCommit().getHash();
     }
 
     public static void stageForAddition(File file) {

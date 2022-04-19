@@ -9,7 +9,7 @@ import java.util.Formatter;
 
 public class Commit implements Serializable {
 
-    private Map<String, String> _commitMap;
+    private Map<String, String> _commitMap; // file name : SHA-1 hash
     private Stage _addStage;
     private Stage _removeStage;
     private final String MESSAGE_STR = "message";
@@ -19,7 +19,7 @@ public class Commit implements Serializable {
     private final ArrayList<String> defaultKeys = new ArrayList<>
             (List.of(MESSAGE_STR, TIMESTAMP_STR, PARENT_STR, PARENT2_STR));
 
-    public Commit(String message, Date timestamp, String parent, String parent2) {
+    public Commit(String message, Date timestamp, String parentHash, String parent2) {
         _addStage = fetchAddStage();
         _removeStage = fetchRemoveStage();
         _commitMap = new TreeMap<>();
@@ -28,8 +28,7 @@ public class Commit implements Serializable {
         }
         _commitMap.put(MESSAGE_STR, message);
         _commitMap.put(TIMESTAMP_STR, formatDate(timestamp));
-        _commitMap.put(PARENT_STR, parent);
-        _commitMap.put(PARENT2_STR, parent2);
+        _commitMap.put(PARENT_STR, parentHash);
     }
 
     public Commit(String message, Date timestamp, String parent) {
@@ -81,8 +80,6 @@ public class Commit implements Serializable {
             for (Map.Entry<String, String> entry : _removeStage.getStage().entrySet()) {
                 _commitMap.remove(entry.getKey(), entry.getValue());
             }
-        } else {
-            System.out.println("should not be processing stage of initial commit!");
         }
         clearAddStage();
         clearRemoveStage();
