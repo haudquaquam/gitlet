@@ -50,6 +50,9 @@ public class Commit implements Serializable {
 
     public static Commit importCommit(String commitHash) {
         File commitFile = new File(COMMITS_FOLDER, commitHash);
+        if (!commitFile.exists()) {
+            throw error("No commit with that id exists.");
+        }
         return readObject(commitFile, Commit.class);
     }
 
@@ -112,6 +115,14 @@ public class Commit implements Serializable {
 
     public Commit getParentCommit() {
         return importCommit(getParentHash());
+    }
+
+    public static String getFileHashFromName(Commit commit, String fileName) {
+        Map<String, String> commitMap = commit._commitMap;
+        if (!commitMap.containsKey(fileName)) {
+            throw error("File does not exist in that commit.");
+        }
+        return commitMap.get(fileName);
     }
 
     /*private void processRemoveStage() {

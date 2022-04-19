@@ -30,6 +30,10 @@ public class Blob implements Serializable {
         return _hash;
     }
 
+    public byte[] getFileContents() {
+        return _fileContents;
+    }
+
     public static void exportBlob(Blob blob) {
         String fileName = blob.getHash();
         File newBlobFile = new File(BLOBS_FOLDER, fileName);

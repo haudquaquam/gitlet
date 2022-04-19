@@ -5,10 +5,10 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Map;
-import java.util.regex.Pattern;
 
 import static gitlet.Branch.*;
+import static gitlet.Commit.getFileHashFromName;
+import static gitlet.Commit.importCommit;
 import static gitlet.Stage.addBlob;
 import static gitlet.Stage.removeBlob;
 import static gitlet.Utils.*;
@@ -33,8 +33,13 @@ public class Main {
     public static final File BRANCHES_FILE =
             new File(GITLET_FOLDER, "branches.txt");
 
-    public static final File HEAD_BRANCHES_FILE =
+    public static final File ACTIVE_BRANCH_FILE =
             new File(GITLET_FOLDER, "HEAD_branch.txt");
+
+    /** File that holds BranchHead object that maps each branch to its
+     * current head commit. */
+    public static final File BRANCHHEAD_FILE =
+            new File(GITLET_FOLDER, "branch_head.txt");
 
     /** Folder that holds all Commit files. */
     public static final File COMMITS_FOLDER =
@@ -49,8 +54,6 @@ public class Main {
 
     public static final File REMOVE_STAGE_FILE =
             new File(GITLET_FOLDER, "remove_stage.txt");
-
-    public static String HEAD_BRANCH_NAME;
 
     /** Usage: java gitlet.Main ARGS, where ARGS contains
      *  <COMMAND> <OPERAND> .... */
@@ -108,6 +111,21 @@ public class Main {
             case "status":
                 break;
             case "checkout":
+                if (args.length < 2 || args.length > 4) {
+                    throw error("Incorrect operands.");
+                }
+
+                if (args[1].equals("--")) {
+                    checkoutFile(fetchHeadCommit(), args[2]);
+                } else if (args[2].equals("--")) {
+                    checkoutFile(importCommit(args[1]), args[3]);
+                } else if (args.length == 2) {
+                    // checkout branch name
+                } else {
+                    throw error("Incorrect operands.");
+                }
+
+
                 break;
             case "branch":
                 break;
@@ -129,9 +147,10 @@ public class Main {
                 BRANCHES_FILE.createNewFile();
                 COMMITS_FOLDER.mkdir();
                 BLOBS_FOLDER.mkdir();
-                HEAD_BRANCHES_FILE.createNewFile();
+                ACTIVE_BRANCH_FILE.createNewFile();
                 ADD_STAGE_FILE.createNewFile();
                 REMOVE_STAGE_FILE.createNewFile();
+                BRANCHHEAD_FILE.createNewFile();
                 clearAddStage();
                 clearRemoveStage();
                 Date epoch = new Date(0);
@@ -139,7 +158,7 @@ public class Main {
                         epoch, null);
 
                 updateBranch("master", commitHash);
-                setNewBranchHead("master");
+                updateActiveBranch("master");
                 // put commit hash into branches and head
 
             } else {
@@ -268,5 +287,14 @@ public class Main {
         String headBranchName = getHeadBranchName();
         int index = 0;
 
+    }
+
+    private static void checkoutFile(Commit commit, String fileName) {
+        String fileHash = getFileHashFromName(commit, fileName);
+        File destinationFile = new File(CWD, fileName);
+        File fromFile = new File(BLOBS_FOLDER, fileHash);
+        Blob fromFileBlob = readObject(fromFile, Blob.class);
+        byte[] desiredContents = fromFileBlob.getFileContents();
+        writeContents(destinationFile, desiredContents);
     }
 }

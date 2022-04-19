@@ -19,7 +19,7 @@ public class Branch implements Serializable {
         if (branchName.equals("master")) {
             _branchMap = new TreeMap<>();
             exportBranch();
-            setNewBranchHead("master");
+            updateActiveBranch("master");
         }
 
         _branchMap = importBranches().getMap();
@@ -42,16 +42,19 @@ public class Branch implements Serializable {
         writeContents(BRANCHES_FILE, bytes);
     }
 
-    public static void setNewBranchHead(String branchName) {
-        HEAD_BRANCH_NAME = branchName;
-        try (PrintWriter out = new PrintWriter(HEAD_BRANCHES_FILE)) {
+    public static void updateActiveBranch(String branchName) {
+        try (PrintWriter out = new PrintWriter(ACTIVE_BRANCH_FILE)) {
             out.println(branchName);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
     }
 
+    public static String fetchActiveBranchName() {
+        return readContentsAsString(ACTIVE_BRANCH_FILE);
+    }
+
     public static String getHeadBranchName() {
-        return readContentsAsString(HEAD_BRANCHES_FILE);
+        return readContentsAsString(ACTIVE_BRANCH_FILE);
     }
 }
