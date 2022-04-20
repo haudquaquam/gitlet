@@ -1,10 +1,14 @@
 package gitlet;
 
+import org.checkerframework.checker.units.qual.A;
+
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.Map;
 
 import static gitlet.Branch.*;
 import static gitlet.Commit.*;
@@ -285,8 +289,30 @@ public class Main {
     private static void displayStatus() {
         Branch branch = importBranches();
         ArrayList<String> branchNameArray = new ArrayList<>(branch.getMap().values());
-        String headBranchName = getHeadBranchName();
-        int index = 0;
+        Collections.sort(branchNameArray);
+        String activeBranchName = fetchActiveBranchName();
+        System.out.println("=== Branches ===");
+        for (String branchName : branchNameArray) {
+            if (branchName.equals(activeBranchName)) {
+                System.out.print("*");
+            }
+            System.out.println(branchName);
+        }
+        System.out.println("=== Staged Files ===");
+        Stage addStage = fetchAddStage();
+        ArrayList<String> addedFiles = new ArrayList<>(addStage.getStage().values());
+        Collections.sort(addedFiles);
+        for (String fileName : addedFiles) {
+            System.out.println(fileName);
+        }
+        System.out.println("=== Removed Files ===");
+        Stage removeStage = fetchAddStage();
+        ArrayList<String> removedFiles = new ArrayList<>(removeStage.getStage().values());
+        Collections.sort(removedFiles);
+        for (String fileName : removedFiles) {
+            System.out.println(fileName);
+        }
+
 
     }
 
