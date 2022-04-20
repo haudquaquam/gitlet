@@ -29,7 +29,9 @@ public class Branch implements Serializable {
         } else {
             throw error("A branch with that name already exists.");
         }
+    }
 
+    public static void updateBranchHead(String branchName, String commitHash) {
 
     }
 

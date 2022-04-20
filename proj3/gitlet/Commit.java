@@ -3,6 +3,7 @@ package gitlet;
 import java.io.*;
 import java.util.*;
 
+import static gitlet.Branch.importBranches;
 import static gitlet.Main.*;
 import static gitlet.Utils.*;
 import java.util.Formatter;
@@ -120,6 +121,20 @@ public class Commit implements Serializable {
             throw error("File does not exist in that commit.");
         }
         return commitMap.get(fileName);
+    }
+
+    public static void updateActiveBranchWithLatestCommit(String commitHash) {
+        Branch branches = importBranches();
+        String activeBranch = readContentsAsString(ACTIVE_BRANCH_FILE);
+        Map<String, String> branchMap = branches.getMap();
+        branchMap.put(activeBranch, commitHash);
+        branches.exportBranch();
+        /*System.out.println("Active Branch File: " + readContentsAsString(ACTIVE_BRANCH_FILE));
+        Branch branches = importBranches();
+        Map<String, String> branchMap = branches.getMap();
+        for (Map.Entry<String, String> entry : branchMap.entrySet()) {
+            System.out.println(entry.getKey() + " val: " + entry.getValue());
+        }*/
     }
 
     /*private void processRemoveStage() {

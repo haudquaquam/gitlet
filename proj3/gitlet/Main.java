@@ -7,8 +7,7 @@ import java.util.ArrayList;
 import java.util.Date;
 
 import static gitlet.Branch.*;
-import static gitlet.Commit.getFileHashFromName;
-import static gitlet.Commit.importCommit;
+import static gitlet.Commit.*;
 import static gitlet.Stage.addBlob;
 import static gitlet.Stage.removeBlob;
 import static gitlet.Utils.*;
@@ -74,7 +73,7 @@ public class Main {
                 if (!newCommit.validCommit()) {
                     throw error("No changes added to the commit.");
                 } else {
-                    processCommit(newCommit);
+                    updateActiveBranchWithLatestCommit(processCommit(newCommit));
                 }
                 break;
             case "add":
@@ -122,8 +121,6 @@ public class Main {
                 } else {
                     throw error("Incorrect operands.");
                 }
-
-
                 break;
             case "branch":
                 break;
@@ -301,4 +298,6 @@ public class Main {
         byte[] desiredContents = fromFileBlob.getFileContents();
         writeContents(destinationFile, desiredContents);
     }
+
+
 }
