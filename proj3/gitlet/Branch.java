@@ -53,10 +53,8 @@ public class Branch implements Serializable {
     }
 
     public static String fetchActiveBranchName() {
-        return readContentsAsString(ACTIVE_BRANCH_FILE);
-    }
-
-    public static String getHeadBranchName() {
-        return readContentsAsString(ACTIVE_BRANCH_FILE);
+        String activeBranchName = readContentsAsString(ACTIVE_BRANCH_FILE);
+        activeBranchName = activeBranchName.replaceAll("[\\n\\r]", "");
+        return activeBranchName;
     }
 }

@@ -17,9 +17,13 @@ public class Blob implements Serializable {
 
     public Blob(File file) {
         _file = file;
-        _hash = sha1("blob" + readContentsAsString(file));
+        _hash = getBlobHash(file);
         _fileName = _file.getName();
         _fileContents = readContents(file);
+    }
+
+    public static String getBlobHash(File file) {
+        return sha1("blob" + readContentsAsString(file));
     }
 
     public String getFileName() {

@@ -1,14 +1,9 @@
 package gitlet;
 
-import org.checkerframework.checker.units.qual.A;
-
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Map;
+import java.util.*;
 
 import static gitlet.Branch.*;
 import static gitlet.Commit.*;
@@ -127,6 +122,7 @@ public class Main {
                 }
                 break;
             case "branch":
+
                 break;
             case "rm-branch":
                 break;
@@ -288,7 +284,7 @@ public class Main {
 
     private static void displayStatus() {
         Branch branch = importBranches();
-        ArrayList<String> branchNameArray = new ArrayList<>(branch.getMap().values());
+        ArrayList<String> branchNameArray = new ArrayList<>(branch.getMap().keySet());
         Collections.sort(branchNameArray);
         String activeBranchName = fetchActiveBranchName();
         System.out.println("=== Branches ===");
@@ -298,6 +294,8 @@ public class Main {
             }
             System.out.println(branchName);
         }
+        System.out.println();
+
         System.out.println("=== Staged Files ===");
         Stage addStage = fetchAddStage();
         ArrayList<String> addedFiles = new ArrayList<>(addStage.getStage().values());
@@ -305,6 +303,8 @@ public class Main {
         for (String fileName : addedFiles) {
             System.out.println(fileName);
         }
+        System.out.println();
+
         System.out.println("=== Removed Files ===");
         Stage removeStage = fetchAddStage();
         ArrayList<String> removedFiles = new ArrayList<>(removeStage.getStage().values());
@@ -312,7 +312,21 @@ public class Main {
         for (String fileName : removedFiles) {
             System.out.println(fileName);
         }
+        System.out.println();
 
+        Map<String, String> modifiedNotStaged = new TreeMap<>(findModifiedFiles(fetchHeadCommit()));
+        System.out.println("=== Modifications Not Staged For Commit ===");
+        for (Map.Entry<String, String> entry : modifiedNotStaged.entrySet()) {
+            System.out.println(entry.getKey() + " " + entry.getValue());
+        }
+        System.out.println();
+
+        System.out.println("=== Untracked Files ===");
+        for (String fileName : findUntrackedFiles()) {
+            if (!modifiedNotStaged.containsKey(fileName)) {
+                System.out.println(fileName);
+            }
+        }
 
     }
 

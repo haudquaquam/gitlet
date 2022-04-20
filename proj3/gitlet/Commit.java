@@ -1,12 +1,15 @@
 package gitlet;
 
+import org.antlr.v4.runtime.tree.Tree;
+
 import java.io.*;
 import java.util.*;
 
+import static gitlet.Blob.getBlobHash;
+import static gitlet.Branch.fetchActiveBranchName;
 import static gitlet.Branch.importBranches;
 import static gitlet.Main.*;
 import static gitlet.Utils.*;
-import java.util.Formatter;
 
 public class Commit implements Serializable {
 
@@ -125,7 +128,7 @@ public class Commit implements Serializable {
 
     public static void updateActiveBranchWithLatestCommit(String commitHash) {
         Branch branches = importBranches();
-        String activeBranch = readContentsAsString(ACTIVE_BRANCH_FILE);
+        String activeBranch = fetchActiveBranchName();
         Map<String, String> branchMap = branches.getMap();
         branchMap.put(activeBranch, commitHash);
         branches.exportBranch();
@@ -135,6 +138,87 @@ public class Commit implements Serializable {
         for (Map.Entry<String, String> entry : branchMap.entrySet()) {
             System.out.println(entry.getKey() + " val: " + entry.getValue());
         }*/
+    }
+
+    public static Map<String, String> findModifiedFiles(Commit commit) {
+        Map<String, String> trackedFiles = new TreeMap<>(commit.getStrippedMap()); //Map of all tracked from last commit
+        Map<String, String> addStageFiles = fetchAddStage().getStage();  //Map of all files from add stage
+        Map<String, String> removeStageFiles = fetchRemoveStage().getStage();
+        Map<String, String> cwdFiles = new TreeMap<>(); //Map of all files in CWD
+        List<String> cwdFileName = new ArrayList<>(plainFilenamesIn(CWD));
+        for (String fileName : cwdFileName) {
+            File currentFile = new File(CWD, fileName);
+            cwdFiles.put(fileName, getBlobHash(currentFile));
+        }
+
+        Map<String, String> modifiedNotStaged = new TreeMap<>();
+
+        // case 1: tracked in the current commit, changed in the working
+        // directory, but not staged
+        for (String fileName : cwdFiles.keySet()) {
+            String cwdHash = cwdFiles.get(fileName);
+            if (trackedFiles.containsKey(fileName)) {
+                // if this FILENAME is tracked
+                if (!(cwdHash.equals(trackedFiles.get(fileName)))) {
+                    // if CWD file hash is not equal to tracked file hash
+                    // meaning that the file contents are different
+                    if (!(addStageFiles.containsKey(fileName))) {
+                        // ADDSTAGE does not contain this file. not staged
+                        modifiedNotStaged.put(fileName, "(modified)");
+                    }
+                }
+            }
+
+            // case 2: staged for addition, but with different contents
+            // than in the working directory
+            if (addStageFiles.containsKey(fileName) &&
+                    !(cwdHash.equals(addStageFiles.get(fileName)))) {
+                // if file is in add stage, but the hashes are different
+                modifiedNotStaged.put(fileName, "(modified)");
+            }
+        }
+
+        // case 3: staged for addition, but deleted in the working directory
+        for (String fileName : addStageFiles.keySet()) {
+            if (!cwdFiles.containsKey(fileName)) {
+                modifiedNotStaged.put(fileName, "(deleted)");
+            }
+        }
+
+        // case 4: not staged for removal, but tracked in the current
+        // commit and deleted from the working directory
+        for (String fileName : trackedFiles.keySet()) {
+            if (!cwdFiles.containsKey(fileName) && !removeStageFiles.containsKey(fileName)) {
+                modifiedNotStaged.put(fileName, "(deleted)");
+            }
+        }
+        return modifiedNotStaged;
+    }
+
+    public static List<String> findUntrackedFiles() {
+        Map<String, String> trackedFiles = new TreeMap<>(fetchHeadCommit().getStrippedMap()); //Map of all tracked from last commit
+        Map<String, String> addStageFiles = fetchAddStage().getStage();  //Map of all files from add stage
+        Map<String, String> removeStageFiles = fetchRemoveStage().getStage();
+        List<String> untrackedFiles = new ArrayList<>(); // return this
+        List<String> cwdFileName = new ArrayList<>(plainFilenamesIn(CWD));
+        for (String fileName : cwdFileName) { //fileName
+            if (!(removeStageFiles.containsKey(fileName)) &&
+                    !(addStageFiles.containsKey(fileName)) &&
+                    !(trackedFiles.containsKey(fileName))) {
+                untrackedFiles.add(fileName);
+            }
+        }
+        return untrackedFiles;
+    }
+
+    public Map<String, String> getStrippedMap() {
+        Map<String, String> processedMap = new TreeMap<>();
+        for (Map.Entry<String, String> entry : _commitMap.entrySet()) {
+            if (!defaultKeys.contains(entry.getKey())) {
+                processedMap.put(entry.getKey(), entry.getValue());
+            }
+        }
+        return processedMap;
     }
 
     /*private void processRemoveStage() {
