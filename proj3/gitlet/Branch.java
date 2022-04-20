@@ -31,8 +31,21 @@ public class Branch implements Serializable {
         }
     }
 
-    public static void updateBranchHead(String branchName, String commitHash) {
+  /*  public static void updateBranchHead(String branchName, String commitHash) {
 
+    }*/
+
+    public static void deleteBranch(String branchName) {
+        var currentBranch = importBranches();
+        var currentMap = currentBranch.getMap();
+        if (!currentMap.containsKey(branchName)) {
+            throw error("A branch with that name does not exist.");
+        } else if (fetchActiveBranchName().equals(branchName)) {
+            throw error("Cannot remove the current branch.");
+        } else {
+            currentMap.remove(branchName);
+            currentBranch.exportBranch();
+        }
     }
 
     public static Branch importBranches() {

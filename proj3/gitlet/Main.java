@@ -96,15 +96,27 @@ public class Main {
                 stageForRemoval(removeFile);
                 break;
             case "log":
+                if (args.length > 1) {
+                    throw error("Incorrect operands.");
+                }
                 displayLog();
                 break;
             case "global-log":
+                if (args.length > 1) {
+                    throw error("Incorrect operands.");
+                }
                 displayGlobalLog();
                 break;
             case "find":
+                if (args.length != 2) {
+                    throw error("Incorrect operands.");
+                }
                 findAllCommitsByMessage(args[1]);
                 break;
             case "status":
+                if (args.length > 1) {
+                    throw error("Incorrect operands.");
+                }
                 displayStatus();
                 break;
             case "checkout":
@@ -122,9 +134,16 @@ public class Main {
                 }
                 break;
             case "branch":
-
+                if (args.length != 2) {
+                    throw error("Incorrect operands.");
+                }
+                updateBranch(args[1], fetchHeadCommitHash());
                 break;
             case "rm-branch":
+                if (args.length != 2) {
+                    throw error("Incorrect operands.");
+                }
+                deleteBranch(args[1]);
                 break;
             case "reset":
                 break;

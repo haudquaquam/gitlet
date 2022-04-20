@@ -52,6 +52,14 @@ public class Commit implements Serializable {
     }
 
     public static Commit importCommit(String commitHash) {
+        if (commitHash.length() < 40) {
+            List<String> allCommitHashes = new ArrayList<>(plainFilenamesIn(COMMITS_FOLDER));
+            for (String possibleMatch : allCommitHashes) {
+                if (possibleMatch.indexOf(commitHash) == 0) {
+                    commitHash = possibleMatch;
+                }
+            }
+        }
         File commitFile = new File(COMMITS_FOLDER, commitHash);
         if (!commitFile.exists()) {
             throw error("No commit with that id exists.");
