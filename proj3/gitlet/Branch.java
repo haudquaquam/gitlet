@@ -70,4 +70,17 @@ public class Branch implements Serializable {
         activeBranchName = activeBranchName.replaceAll("[\\n\\r]", "");
         return activeBranchName;
     }
+
+    public static String findLatestCommonAncestor(String branchFirst, String branchOther) {
+        Branch branches = importBranches();
+        var branchMap = branches.getMap();
+        if (!(branchMap.containsKey(branchFirst) && branchMap.containsKey(branchOther))) {
+            throw error("A branch with that name does not exist.");
+        } else if (branchFirst.equals(branchOther)) {
+            throw error("Cannot merge a branch with itself.");
+        }
+
+
+        return "";
+    }
 }

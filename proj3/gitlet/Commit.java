@@ -23,7 +23,7 @@ public class Commit implements Serializable {
     private final ArrayList<String> defaultKeys = new ArrayList<>
             (List.of(MESSAGE_STR, TIMESTAMP_STR, PARENT_STR, PARENT2_STR));
 
-    public Commit(String message, Date timestamp, String parentHash, String parent2) {
+    public Commit(String message, Date timestamp, String parentHash, String parent2Hash) {
         _addStage = fetchAddStage();
         _removeStage = fetchRemoveStage();
         _commitMap = new TreeMap<>();
@@ -33,15 +33,12 @@ public class Commit implements Serializable {
         _commitMap.put(MESSAGE_STR, message);
         _commitMap.put(TIMESTAMP_STR, formatDate(timestamp));
         _commitMap.put(PARENT_STR, parentHash);
+        _commitMap.put(PARENT2_STR, parent2Hash);
     }
 
     public Commit(String message, Date timestamp, String parent) {
         this(message, timestamp, parent, null);
     }
-/*
-    static void processStage() {
-
-    }*/
 
     public String getHash() {
         String hashID = "commit";

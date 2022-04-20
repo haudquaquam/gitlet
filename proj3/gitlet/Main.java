@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import static gitlet.Blob.getBlobHash;
 import static gitlet.Branch.*;
 import static gitlet.Commit.*;
 import static gitlet.Stage.addBlob;
@@ -128,7 +129,7 @@ public class Main {
                 } else if (args[2].equals("--")) {
                     checkoutFile(importCommit(args[1]), args[3]);
                 } else if (args.length == 2) {
-                    // checkout branch name
+                    checkoutBranch(args[1]);
                 } else {
                     throw error("Incorrect operands.");
                 }
@@ -146,6 +147,10 @@ public class Main {
                 deleteBranch(args[1]);
                 break;
             case "reset":
+                if (args.length != 2) {
+                    throw error("Incorrect operands.");
+                }
+
                 break;
             case "merge":
                 break;
@@ -303,7 +308,8 @@ public class Main {
 
     private static void displayStatus() {
         Branch branch = importBranches();
-        ArrayList<String> branchNameArray = new ArrayList<>(branch.getMap().keySet());
+        ArrayList<String> branchNameArray =
+                new ArrayList<>(branch.getMap().keySet());
         Collections.sort(branchNameArray);
         String activeBranchName = fetchActiveBranchName();
         System.out.println("=== Branches ===");
@@ -317,7 +323,8 @@ public class Main {
 
         System.out.println("=== Staged Files ===");
         Stage addStage = fetchAddStage();
-        ArrayList<String> addedFiles = new ArrayList<>(addStage.getStage().values());
+        ArrayList<String> addedFiles =
+                new ArrayList<>(addStage.getStage().values());
         Collections.sort(addedFiles);
         for (String fileName : addedFiles) {
             System.out.println(fileName);
@@ -326,14 +333,16 @@ public class Main {
 
         System.out.println("=== Removed Files ===");
         Stage removeStage = fetchAddStage();
-        ArrayList<String> removedFiles = new ArrayList<>(removeStage.getStage().values());
+        ArrayList<String> removedFiles =
+                new ArrayList<>(removeStage.getStage().values());
         Collections.sort(removedFiles);
         for (String fileName : removedFiles) {
             System.out.println(fileName);
         }
         System.out.println();
 
-        Map<String, String> modifiedNotStaged = new TreeMap<>(findModifiedFiles(fetchHeadCommit()));
+        Map<String, String> modifiedNotStaged =
+                new TreeMap<>(findModifiedFiles(fetchHeadCommit()));
         System.out.println("=== Modifications Not Staged For Commit ===");
         for (Map.Entry<String, String> entry : modifiedNotStaged.entrySet()) {
             System.out.println(entry.getKey() + " " + entry.getValue());
@@ -346,7 +355,6 @@ public class Main {
                 System.out.println(fileName);
             }
         }
-
     }
 
     private static void checkoutFile(Commit commit, String fileName) {
@@ -356,6 +364,57 @@ public class Main {
         Blob fromFileBlob = readObject(fromFile, Blob.class);
         byte[] desiredContents = fromFileBlob.getFileContents();
         writeContents(destinationFile, desiredContents);
+    }
+
+    private static void checkoutBranch(String branchName) {
+        Branch branches = importBranches();
+        var branchesMap = branches.getMap();
+        Commit oldCommit;
+        Commit desiredCommit;
+        if (!(branchesMap.containsKey(branchName))) {
+            throw error("No such branch exists.");
+        } else if (fetchActiveBranchName().equals(branchName)) {
+            throw error("No need to checkout the current branch.");
+        } else {
+            oldCommit = importCommit(branchesMap.get(fetchActiveBranchName()));
+            desiredCommit = importCommit(branchesMap.get(branchName));
+        }
+
+        Map<String, String> trackedFiles = new TreeMap<>(oldCommit.getStrippedMap());
+        //Map of all tracked from last commit
+        Map<String, String> addStageFiles = fetchAddStage().getStage();
+        //Map of all files from add stage
+        Map<String, String> removeStageFiles = fetchRemoveStage().getStage();
+        Map<String, String> cwdFiles = new TreeMap<>(); //Map of all files in CWD
+        List<String> cwdFileName = new ArrayList<>(plainFilenamesIn(CWD));
+        for (String fileName : cwdFileName) {
+            File currentFile = new File(CWD, fileName);
+            cwdFiles.put(fileName, getBlobHash(currentFile));
+        }
+
+        // take all files in DESIREDCOMMIT and put them in CWD, overwriting
+        // the versions of teh files that are already there if they exist.
+
+        // but first check that all filenames in DESIREDCOMMIT that exist
+        // in CWD are tracked and not modified if tracked
+
+        for (String fileName : desiredCommit.getStrippedMap().keySet()) {
+            if (cwdFiles.containsKey(fileName)) {
+                Blob blob = new Blob(new File(CWD, fileName));
+                if (!oldCommit.contains(blob)) {
+                    throw error("There is an untracked file in the way; " +
+                            "delete it, or add and commit it first.");
+                }
+            }
+        }
+
+
+
+
+
+
+
+        updateActiveBranch(branchName);
     }
 
 
