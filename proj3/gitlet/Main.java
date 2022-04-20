@@ -32,6 +32,7 @@ public class Main {
     public static final File BRANCHES_FILE =
             new File(GITLET_FOLDER, "branches.txt");
 
+    /** File that holds the String name of the current active branch. */
     public static final File ACTIVE_BRANCH_FILE =
             new File(GITLET_FOLDER, "HEAD_branch.txt");
 
@@ -48,9 +49,13 @@ public class Main {
     public static final File BLOBS_FOLDER =
             new File(COMMITS_FOLDER, "blobs");
 
+    /** File that holds the Stage object that represents
+     * the Add Stage. */
     public static final File ADD_STAGE_FILE =
             new File(GITLET_FOLDER, "add_stage.txt");
 
+    /** File that holds the Stage object that represents
+     * the Remove Stage. */
     public static final File REMOVE_STAGE_FILE =
             new File(GITLET_FOLDER, "remove_stage.txt");
 
@@ -159,6 +164,7 @@ public class Main {
         }
     }
 
+    /** Initializes the repository. */
     public static void initializeRepo() {
         try {
             if (GITLET_FOLDER.mkdir()) {
@@ -190,18 +196,14 @@ public class Main {
         }
     }
 
+    /** Handles processing of a commit with MESSAGE, TIMESTAMP, and PARENT. */
     public static String processCommit(String message, Date timestamp,
                                        String parent) {
         Commit commit = new Commit(message, timestamp, parent);
         return processCommit(commit);
     }
 
-
-    /*public static String processCommit(String message, Date timestamp, Stage stage,
-                                     Stage removeStage, String parent, String parent2) {
-        Commit commit = new Commit(message, timestamp, ADD_STAGE_FILE, REMOVE_STAGE_FILE, parent, parent2);
-        return processCommit(commit);
-    }*/
+    /** Handles the processing of COMMIT returns its hash. */
     public static String processCommit(Commit commit) {
         String hash = commit.getHash();
         commit.processStage();
@@ -210,51 +212,65 @@ public class Main {
         return hash;
     }
 
+    /** Sets the branch named BRANCHNAME to point to the Commit with
+     * the hash, COMMITHASH. */
     public static void updateBranch(String branchName, String commitHash) {
         Branch newBranch = new Branch(branchName, commitHash);
         newBranch.exportBranch();
     }
 
+    /** Sets NEWCOMMIT to be the current head commit. */
     public static void updateHeadCommit(Commit newCommit) {
         writeObject(HEAD_FILE, newCommit);
     }
 
+    /** Returns the current head commit. */
     public static Commit fetchHeadCommit() {
         return readObject(HEAD_FILE, Commit.class);
     }
 
+    /** Returns the hash of the current head commit. */
     public static String fetchHeadCommitHash() {
         return fetchHeadCommit().getHash();
     }
 
+    /** Takes FILE, and adds that to the Add Stage. */
     public static void stageForAddition(File file) {
         Blob blob = new Blob(file);
         addBlob(blob);
     }
 
+    /** Takes FILE, and adds that to the Remove Stage. */
     public static void stageForRemoval(File file) {
         Blob blob = new Blob(file);
         removeBlob(blob);
     }
 
+    /** Returns Stage object representing the current Add
+     * Stage. */
     public static Stage fetchAddStage() {
         return readObject(ADD_STAGE_FILE, Stage.class);
     }
 
+    /** Returns Stage object representing the current Remove
+     * Stage. */
     public static Stage fetchRemoveStage() {
         return readObject(REMOVE_STAGE_FILE, Stage.class);
     }
 
+    /** Clears the current Add Stage. */
     public static void clearAddStage() {
         Stage empty = new Stage();
         writeObject(ADD_STAGE_FILE, empty);
     }
 
+    /** Clears the current Remove Stage. */
     public static void clearRemoveStage() {
         Stage empty = new Stage();
         writeObject(REMOVE_STAGE_FILE, empty);
     }
 
+    /** Displays log of the current branch. */
     private static void displayLog() {
         Commit currentCommit = fetchHeadCommit();
         while (currentCommit != null) {
@@ -266,15 +282,14 @@ public class Main {
         }
     }
 
-    /** Format: Thu Nov 9 17:01:33 2017 -0800
-     * */
+    /** Handles formatting of DATE. Returns a String of the formatted Date. */
     public static String formatDate(Date date) {
         SimpleDateFormat formatter =
                 new SimpleDateFormat("E MMM dd HH:mm:ss yyyy Z");
         return formatter.format(date);
-
     }
 
+    /** Prints out information about COMMIT. */
     public static void printCommit(Commit commit) {
         System.out.println("===");
         System.out.println("commit " + commit.getHash());
@@ -282,7 +297,7 @@ public class Main {
         System.out.println(commit.getMessage());
         System.out.println();
     }
-
+    /** Displays all commits made, ever. */
     private static void displayGlobalLog() {
         ArrayList<String> listFileNames = new ArrayList<>(plainFilenamesIn(COMMITS_FOLDER));
         for (String hash : listFileNames) {
@@ -291,6 +306,7 @@ public class Main {
         }
     }
 
+    /** Prints hashes of all commits with the message, MESSAGE. */
     private static void findAllCommitsByMessage(String message) {
         ArrayList<String> listFileNames = new ArrayList<>(plainFilenamesIn(COMMITS_FOLDER));
         int foundCommits = 0;
@@ -306,6 +322,7 @@ public class Main {
         }
     }
 
+    /** Displays status by printing. */
     private static void displayStatus() {
         Branch branch = importBranches();
         ArrayList<String> branchNameArray =
@@ -357,15 +374,23 @@ public class Main {
         }
     }
 
+    /** Checks out file with name FILENAME from COMMIT. Overwrites or writes
+     * to new file. */
     private static void checkoutFile(Commit commit, String fileName) {
         String fileHash = getFileHashFromName(commit, fileName);
         File destinationFile = new File(CWD, fileName);
+        try {
+            destinationFile.createNewFile();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         File fromFile = new File(BLOBS_FOLDER, fileHash);
         Blob fromFileBlob = readObject(fromFile, Blob.class);
         byte[] desiredContents = fromFileBlob.getFileContents();
         writeContents(destinationFile, desiredContents);
     }
 
+    /** Checks out entire branch by the name of BRANCHNAME. */
     private static void checkoutBranch(String branchName) {
         Branch branches = importBranches();
         var branchesMap = branches.getMap();
@@ -393,7 +418,7 @@ public class Main {
         }
 
         // take all files in DESIREDCOMMIT and put them in CWD, overwriting
-        // the versions of teh files that are already there if they exist.
+        // the versions of the files that are already there if they exist.
 
         // but first check that all filenames in DESIREDCOMMIT that exist
         // in CWD are tracked and not modified if tracked
@@ -407,13 +432,21 @@ public class Main {
                 }
             }
         }
+        for (String fileName : oldCommit.getStrippedMap().keySet()) {
+            // any files that are tracked in the current branch but are not
+            // present in the checked-out branch are deleted. deletes all
+            // files in the current branch that do not exist in desired commit
+            if (cwdFiles.containsKey(fileName) && !desiredCommit.getStrippedMap().containsKey(fileName)) {
+                File toBeDeleted = new File(CWD, fileName);
+                toBeDeleted.delete();
+            }
+        }
+        for (String fileName : desiredCommit.getStrippedMap().keySet()) {
+            checkoutFile(desiredCommit, fileName);
+        }
 
-
-
-
-
-
-
+        clearRemoveStage();
+        clearAddStage();
         updateActiveBranch(branchName);
     }
 
