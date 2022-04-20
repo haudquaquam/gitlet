@@ -88,6 +88,7 @@ public class RedBlackTreeTest {
         Collections.shuffle(itemsList, new Random(seed));
         for (Integer item : itemsList) {
             tree.insert(item);
+            System.out.println(allItems(tree.graderRoot()));
         }
         checkTree(tree.graderRoot(), items);
     }
@@ -157,6 +158,10 @@ public class RedBlackTreeTest {
     }
 
     // TODO: Create a larger test?
+    @Test
+    public void bigTest() {
+        doTest(new Integer[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 }, 1234L);
+    }
 
     // TODO: Create tests that targets each of case A, B, and C?
 

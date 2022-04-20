@@ -45,7 +45,7 @@ public class RedBlackTree<T extends Comparable<T>> {
      * @return new root of the (sub)tree.
      */
     RBTreeNode<T> rotateRight(RBTreeNode<T> node) {
-        try {
+        /*try {
             var blue = node.left;
             var red = blue.right;
             if (blue.right == null) {
@@ -57,8 +57,17 @@ public class RedBlackTree<T extends Comparable<T>> {
             node.left = red;
             return blue;
         } catch (NullPointerException ignored) {
+            System.out.println("null ptr exception rotate RIGHT");
             return null;
-        }
+        }*/
+        var y = node;
+        var x = y.left;
+        y.left = x.right;
+
+        x.right = y;
+        x.isBlack = y.isBlack;
+        y.isBlack = false;
+        return x;
     }
 
     /**
@@ -70,16 +79,13 @@ public class RedBlackTree<T extends Comparable<T>> {
      * @return new root of the (sub)tree.
      */
     RBTreeNode<T> rotateLeft(RBTreeNode<T> node) {
-        try {
-            var yellow = node.right;
-            yellow.isBlack = node.isBlack;
-            node.isBlack = false;
-            node.right = yellow.left;
-            yellow.left = node;
-            return yellow;
-        } catch (NullPointerException ignored) {
-            return null;
-        }
+        var x = node;
+        var y = node.right;
+        x.right = y.left;
+        y.left = x;
+        y.isBlack = x.isBlack;
+        x.isBlack = false;
+        return y;
     }
 
     /**
@@ -113,6 +119,7 @@ public class RedBlackTree<T extends Comparable<T>> {
     void insert(T item) {
         root = insert(root, item);
         root.isBlack = true;
+        System.out.println("inserted item " + item);
     }
 
     /**
@@ -128,7 +135,8 @@ public class RedBlackTree<T extends Comparable<T>> {
 
         // Insert (return) new red leaf node.
         if (node == null) {
-            return new RBTreeNode<T>(false, item);
+            node = new RBTreeNode<T>(false, item);
+            return node;
         }
 
         // Handle normal binary search tree insertion.
@@ -144,22 +152,17 @@ public class RedBlackTree<T extends Comparable<T>> {
 
         // handle case C and "Right-leaning" situation.
         if (isRed(node.right) && !isRed(node.left)) {
-            rotateLeft(node);
-
+            node = rotateLeft(node);
         }
 
         // handle case B
         if (isRed(node.left) && isRed(node.left.left)) {
-
-            rotateRight(node);
-            flipColors(node);
-
+            node = rotateRight(node);
         }
 
         // handle case A
         if (isRed(node.left) && isRed(node.right)) {
             flipColors(node);
-
         }
         return node;
     }
