@@ -105,4 +105,17 @@ public class Branch implements Serializable {
         }
         return latestCommonAncestor;
     }
+
+
+
+    /** Checks whether Commit POTENTIALANCESTOR is an ancestor of Commit,
+     * COMMITHASH. */
+    public static boolean isAncestor(String potentialAncestor, String commitHash) {
+        Commit potentialCommit = Commit.importCommit(potentialAncestor);
+        Commit commit = Commit.importCommit(commitHash);
+
+
+        return false;
+    }
+
 }

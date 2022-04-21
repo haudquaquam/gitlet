@@ -297,7 +297,8 @@ public class Main {
         System.out.println(commit.getMessage());
         System.out.println();
     }
-    /** Displays all commits made, ever. */
+
+    /** Displays all commits made in this repo, ever. */
     private static void displayGlobalLog() {
         ArrayList<String> listFileNames = new ArrayList<>(plainFilenamesIn(COMMITS_FOLDER));
         for (String hash : listFileNames) {
@@ -441,6 +442,7 @@ public class Main {
         updateActiveBranch(branchName);
     }
 
+    /** Resets to the Commit specified by COMMITHASH. */
     private static void reset(String commitHash) {
         Commit desiredCommit = importCommit(commitHash);
         Commit oldCommit = importCommit(fetchHeadCommitHash());
@@ -482,4 +484,90 @@ public class Main {
         clearRemoveStage();
     }
 
+    public static void merge(String givenBranch) {
+        Branch branches = importBranches();
+        var branchMap = branches.getMap();
+        var currentBranch = fetchActiveBranchName();
+        if (!branchMap.containsKey(givenBranch)) {
+            throw error("A branch with that name does not exist.");
+        } else if (givenBranch.equals(currentBranch)) {
+            throw error("Cannot merge a branch with itself.");
+        }
+        var givenCommitHash = branchMap.get(givenBranch);
+        var currentCommitHash = branchMap.get(currentBranch);
+
+        var latestCommonAncestor = findLatestCommonAncestor(givenBranch, currentBranch);
+
+        if (latestCommonAncestor.equals(givenBranch)) {
+            System.out.println("Given branch is an ancestor of the current branch.");
+            return;
+        } else if (latestCommonAncestor.equals(currentBranch)) {
+            checkoutBranch(givenBranch);
+            System.out.println("Current branch fast-forwarded.");
+        }
+
+        // FAILURE CASE: if stages contain adds/removes, error with:
+        // "You have uncommitted changes."
+
+        // FAILURE CASE: if branch does not exist, error:
+        // "A branch with that name does not exist."
+
+        // FAILURE CASE: attempting to merge branch with itself, error:
+        // "Cannot merge a branch with itself."
+
+        // FAILURE CASE: untracked file in current commit that would be
+        // overwritten or deleted by merge, error:
+        // "There is an untracked file in the way; delete it, or
+        // add and commit it first."
+
+        // any files that have been modified in the GIVENBRANCH since the split point,
+        // but not modified in the CURRENTBRANCH since the split point should be changed
+        // to their versions in the GIVENBRANCH. (checkout from GIVENBRANCH's HEAD COMMIT)
+        // then, stage all of those files in CURRENTBRANCH
+
+
+        // any files modified in CURRENTBRANCH, but not in GIVENBRANCH should stay
+
+        // any files modified in BOTH the CURRENTBRANCH and GIVENBRANCH in the same way
+        // (both have same content now, or both are removed), are not changed by merge.
+
+        // if file was removed from both CURRENTBRANCH and GIVENBRANCH, but file of same
+        // name exists in CWD, it is left alone and continues to be untracked in the merge.
+
+        // any files not in the split point, and only in the GIVENBRANCH should be checked
+        // out and STAGED!
+
+        // any files not present in the split point, and only exist in the CURRENTBRANCH
+        // should stay as they are
+
+        // any files present at the split point, unchanged at the GIVENBRANCH, and not
+        // present in the CURRENTBRANCH should remain absent!
+
+        // MERGE CONFLICTS: modified in DIFFERENT ways in CURRENTBRANCH and GIVENBRANCH
+        // contents are both changed from split point and differnt from each other,
+        // or the contents of one are changed, and the other file is deleted. OR the file
+        // is not in split point, and it has different contents in GIVENBRANCH and
+        // CURRENTBRANCH
+        // In any of these cases:
+        // replace the contents of the conflicted file in CURRENTBRANCH with
+        /*
+         <<<<<<< HEAD
+         contents of file in current branch
+         =======
+         contents of file in given branch
+         >>>>>>>
+         */
+        // replace "contents of..." with the actual contents
+        // then, stage this file (the result). if a file is deleted, make contents empty.
+        // use straight concatenation. don't worry about files with no newlines. will
+        // give strange output
+
+        // AFTER ALL THE ABOVE: (if split point was not CURRENTBRANCH or GIVENBRANCH)
+        // commit in CURRENTBRANCH with the message:
+        // "Merged [given branch name] into [current branch name]"
+        // if there was a conflict , also PRINT the message:
+        // "Encountered a merge conflict."
+
+
+    }
 }
