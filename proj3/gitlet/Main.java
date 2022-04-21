@@ -63,7 +63,8 @@ public class Main {
      *  <COMMAND> <OPERAND> .... */
     public static void main(String... args) {
         if (args.length == 0) {
-            throw error("Please enter a command.");
+            message("Please enter a command.");
+            System.exit(0);
         }
         switch (args[0]) {
             case "init":
@@ -71,63 +72,74 @@ public class Main {
                 break;
             case "commit":
                 if (!(args.length > 1)) {
-                    throw error("Please enter a commit message.");
+                    message("Please enter a commit message.");
+                    System.exit(0);
                 }
                 Commit newCommit = new Commit(args[1], new Date(),
                         fetchHeadCommitHash());
                 if (!newCommit.validCommit()) {
-                    throw error("No changes added to the commit.");
+                    message("No changes added to the commit.");
+                    System.exit(0);
                 } else {
                     updateActiveBranchWithLatestCommit(processCommit(newCommit));
                 }
                 break;
             case "add":
                 if (args.length != 2) {
-                    throw error("Incorrect operands.");
+                    message("Incorrect operands.");
+                    System.exit(0);
                 }
                 File addFile = new File(CWD, args[1]);
                 if (!addFile.exists()) {
-                    throw error("File does not exist.");
+                    message("File does not exist.");
+                    System.exit(0);
                 }
                 stageForAddition(addFile);
                 break;
             case "rm":
                 if (args.length != 2) {
-                    throw error("Incorrect operands.");
+                    message("Incorrect operands.");
+                    System.exit(0);
                 }
                 File removeFile = new File(CWD, args[1]);
                 if (!removeFile.exists()) {
-                    throw error("File does not exist.");
+                    message("File does not exist.");
+                    System.exit(0);
                 }
                 stageForRemoval(removeFile);
                 break;
             case "log":
                 if (args.length > 1) {
-                    throw error("Incorrect operands.");
+                    message("Incorrect operands.");
+                    System.exit(0);
                 }
                 displayLog();
                 break;
             case "global-log":
                 if (args.length > 1) {
-                    throw error("Incorrect operands.");
+                    message("Incorrect operands.");
+                    System.exit(0);
                 }
                 displayGlobalLog();
                 break;
             case "find":
                 if (args.length != 2) {
-                    throw error("Incorrect operands.");
+                    message("Incorrect operands.");
+                    System.exit(0);
                 }
                 findAllCommitsByMessage(args[1]);
                 break;
             case "status":
                 if (args.length > 1) {
-                    throw error("Incorrect operands.");
+                    message("Incorrect operands.");
+                    System.exit(0);
                 }
                 displayStatus();
                 break;
             case "checkout":
                 if (args.length < 2 || args.length > 4) {
-                    throw error("Incorrect operands.");
+                    message("Incorrect operands.");
+                    System.exit(0);
                 }
                 if (args[1].equals("--")) {
                     checkoutFile(fetchHeadCommit(), args[2]);
@@ -136,31 +148,36 @@ public class Main {
                 } else if (args.length == 2) {
                     checkoutBranch(args[1]);
                 } else {
-                    throw error("Incorrect operands.");
+                    message("Incorrect operands.");
+                    System.exit(0);
                 }
                 break;
             case "branch":
                 if (args.length != 2) {
-                    throw error("Incorrect operands.");
+                    message("Incorrect operands.");
+                    System.exit(0);
                 }
                 updateBranch(args[1], fetchHeadCommitHash());
                 break;
             case "rm-branch":
                 if (args.length != 2) {
-                    throw error("Incorrect operands.");
+                    message("Incorrect operands.");
+                    System.exit(0);
                 }
                 deleteBranch(args[1]);
                 break;
             case "reset":
                 if (args.length != 2) {
-                    throw error("Incorrect operands.");
+                    message("Incorrect operands.");
+                    System.exit(0);
                 }
                 reset(args[1]);
                 break;
             case "merge":
                 break;
             default:
-                throw error("No command with that name exists.");
+                message("No command with that name exists.");
+                System.exit(0);
         }
     }
 
@@ -188,8 +205,9 @@ public class Main {
                 // put commit hash into branches and head
 
             } else {
-                throw error("A Gitlet version-control system already " +
+                message("A Gitlet version-control system already " +
                         "exists in the current directory.");
+                System.exit(0);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -319,7 +337,8 @@ public class Main {
             }
         }
         if (foundCommits == 0) {
-            throw error("Found no commit with that message.");
+            message("Found no commit with that message.");
+            System.exit(0);
         }
     }
 
@@ -395,12 +414,14 @@ public class Main {
     private static void checkoutBranch(String branchName) {
         Branch branches = importBranches();
         var branchesMap = branches.getMap();
-        Commit oldCommit;
-        Commit desiredCommit;
+        Commit oldCommit = null;
+        Commit desiredCommit = null;
         if (!(branchesMap.containsKey(branchName))) {
-            throw error("No such branch exists.");
+            message("No such branch exists.");
+            System.exit(0);
         } else if (fetchActiveBranchName().equals(branchName)) {
-            throw error("No need to checkout the current branch.");
+            message("No need to checkout the current branch.");
+            System.exit(0);
         } else {
             oldCommit = importCommit(branchesMap.get(fetchActiveBranchName()));
             desiredCommit = importCommit(branchesMap.get(branchName));
@@ -420,8 +441,9 @@ public class Main {
             if (cwdFiles.containsKey(fileName)) {
                 Blob blob = new Blob(new File(CWD, fileName));
                 if (!oldCommit.contains(blob)) {
-                    throw error("There is an untracked file in the way; " +
+                    message("There is an untracked file in the way; " +
                             "delete it, or add and commit it first.");
+                    System.exit(0);
                 }
             }
         }
@@ -460,8 +482,9 @@ public class Main {
             if (cwdFileName.contains(fileName)) {
                 Blob blob = new Blob(new File(CWD, fileName));
                 if (!oldCommit.contains(blob)) {
-                    throw error("There is an untracked file in the way; " +
+                    message("There is an untracked file in the way; " +
                             "delete it, or add and commit it first.");
+                    System.exit(0);
                 }
             }
         }
@@ -489,9 +512,11 @@ public class Main {
         var branchMap = branches.getMap();
         var currentBranch = fetchActiveBranchName();
         if (!branchMap.containsKey(givenBranch)) {
-            throw error("A branch with that name does not exist.");
+            message("A branch with that name does not exist.");
+            System.exit(0);
         } else if (givenBranch.equals(currentBranch)) {
-            throw error("Cannot merge a branch with itself.");
+            message("Cannot merge a branch with itself.");
+            System.exit(0);
         }
         var givenCommitHash = branchMap.get(givenBranch);
         var currentCommitHash = branchMap.get(currentBranch);

@@ -41,7 +41,8 @@ public class Stage implements Serializable {
             restrictedDelete(blob.getFileName());
             writeObject(REMOVE_STAGE_FILE, updatedRemoveStage);
         } else {
-            throw error("No reason to remove the file.");
+            message("No reason to remove the file.");
+            System.exit(0);
         }
     }
 }

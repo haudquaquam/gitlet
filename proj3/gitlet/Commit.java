@@ -28,7 +28,8 @@ public class Commit implements Serializable {
         _removeStage = fetchRemoveStage();
         _commitMap = new TreeMap<>();
         if (message.isEmpty()) {
-            throw error("Please enter a commit message.");
+            message("Please enter a commit message.");
+            System.exit(0);
         }
         _commitMap.put(MESSAGE_STR, message);
         _commitMap.put(TIMESTAMP_STR, formatDate(timestamp));
@@ -59,7 +60,8 @@ public class Commit implements Serializable {
         }
         File commitFile = new File(COMMITS_FOLDER, commitHash);
         if (!commitFile.exists()) {
-            throw error("No commit with that id exists.");
+            message("No commit with that id exists.");
+            System.exit(0);
         }
         return readObject(commitFile, Commit.class);
     }
@@ -126,7 +128,8 @@ public class Commit implements Serializable {
     public static String getFileHashFromName(Commit commit, String fileName) {
         Map<String, String> commitMap = commit._commitMap;
         if (!commitMap.containsKey(fileName)) {
-            throw error("File does not exist in that commit.");
+            message("File does not exist in that commit.");
+            System.exit(0);
         }
         return commitMap.get(fileName);
     }

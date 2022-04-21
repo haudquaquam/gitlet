@@ -29,7 +29,8 @@ public class Branch implements Serializable {
         if (!_branchMap.containsKey(branchName)) { // check that BRANCHES_FILE Branch doesn't already have this branch listed
             _branchMap.put(branchName, commitHash);
         } else {
-            throw error("A branch with that name already exists.");
+            message("A branch with that name already exists.");
+            System.exit(0);
         }
     }
 
@@ -41,9 +42,11 @@ public class Branch implements Serializable {
         var currentBranch = importBranches();
         var currentMap = currentBranch.getMap();
         if (!currentMap.containsKey(branchName)) {
-            throw error("A branch with that name does not exist.");
+            message("A branch with that name does not exist.");
+            System.exit(0);
         } else if (fetchActiveBranchName().equals(branchName)) {
-            throw error("Cannot remove the current branch.");
+            message("Cannot remove the current branch.");
+            System.exit(0);
         } else {
             currentMap.remove(branchName);
             currentBranch.exportBranch();
@@ -81,9 +84,11 @@ public class Branch implements Serializable {
         String latestCommonAncestor = null;
         var branchMap = branches.getMap();
         if (!(branchMap.containsKey(branchFirst) && branchMap.containsKey(branchOther))) {
-            throw error("A branch with that name does not exist.");
+            message("A branch with that name does not exist.");
+            System.exit(0);
         } else if (branchFirst.equals(branchOther)) {
-            throw error("Cannot merge a branch with itself.");
+            message("Cannot merge a branch with itself.");
+            System.exit(0);
         }
         Commit commitFirst = Commit.importCommit(branchMap.get(branchFirst));
         Commit commitOther = Commit.importCommit(branchMap.get(branchOther));
