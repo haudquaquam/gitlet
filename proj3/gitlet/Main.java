@@ -155,7 +155,7 @@ public class Main {
                 if (args.length != 2) {
                     throw error("Incorrect operands.");
                 }
-
+                reset(args[1]);
                 break;
             case "merge":
                 break;
@@ -404,25 +404,17 @@ public class Main {
             oldCommit = importCommit(branchesMap.get(fetchActiveBranchName()));
             desiredCommit = importCommit(branchesMap.get(branchName));
         }
-
-        Map<String, String> trackedFiles = new TreeMap<>(oldCommit.getStrippedMap());
-        //Map of all tracked from last commit
-        Map<String, String> addStageFiles = fetchAddStage().getStage();
-        //Map of all files from add stage
-        Map<String, String> removeStageFiles = fetchRemoveStage().getStage();
         Map<String, String> cwdFiles = new TreeMap<>(); //Map of all files in CWD
         List<String> cwdFileName = new ArrayList<>(plainFilenamesIn(CWD));
         for (String fileName : cwdFileName) {
             File currentFile = new File(CWD, fileName);
             cwdFiles.put(fileName, getBlobHash(currentFile));
         }
-
         // take all files in DESIREDCOMMIT and put them in CWD, overwriting
         // the versions of the files that are already there if they exist.
 
         // but first check that all filenames in DESIREDCOMMIT that exist
         // in CWD are tracked and not modified if tracked
-
         for (String fileName : desiredCommit.getStrippedMap().keySet()) {
             if (cwdFiles.containsKey(fileName)) {
                 Blob blob = new Blob(new File(CWD, fileName));
@@ -444,11 +436,50 @@ public class Main {
         for (String fileName : desiredCommit.getStrippedMap().keySet()) {
             checkoutFile(desiredCommit, fileName);
         }
-
         clearRemoveStage();
         clearAddStage();
         updateActiveBranch(branchName);
     }
 
+    private static void reset(String commitHash) {
+        Commit desiredCommit = importCommit(commitHash);
+        Commit oldCommit = importCommit(fetchHeadCommitHash());
+        var oldFileNames = oldCommit.getStrippedMap().keySet();
+        var desiredFileNames = desiredCommit.getStrippedMap().keySet();
+
+        Map<String, String> cwdFiles = new TreeMap<>(); //Map of all files in CWD
+        List<String> cwdFileName = new ArrayList<>(plainFilenamesIn(CWD));
+        for (String fileName : cwdFileName) {
+            File currentFile = new File(CWD, fileName);
+            cwdFiles.put(fileName, getBlobHash(currentFile));
+        }
+
+        for (String fileName : desiredFileNames) {
+            if (cwdFileName.contains(fileName)) {
+                Blob blob = new Blob(new File(CWD, fileName));
+                if (!oldCommit.contains(blob)) {
+                    throw error("There is an untracked file in the way; " +
+                            "delete it, or add and commit it first.");
+                }
+            }
+        }
+
+        for (String fileName : oldFileNames) {
+            if (!desiredFileNames.contains(fileName)) {
+                File removeFile = new File(CWD, fileName);
+                removeFile.delete();
+            }
+        }
+
+        for (String fileName : desiredFileNames) {
+            checkoutFile(desiredCommit, fileName);
+        }
+
+        updateBranch(fetchActiveBranchName(), commitHash);
+
+
+        clearAddStage();
+        clearRemoveStage();
+    }
 
 }

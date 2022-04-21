@@ -1,6 +1,8 @@
 package gitlet;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -71,16 +73,36 @@ public class Branch implements Serializable {
         return activeBranchName;
     }
 
+    /** Finds latest common ancestor between BRANCHFIRST and BRANCHOTHER, where
+     * these are names of branches. Returns the commit hash of the latest common
+     * ancestor. */
     public static String findLatestCommonAncestor(String branchFirst, String branchOther) {
         Branch branches = importBranches();
+        String latestCommonAncestor = null;
         var branchMap = branches.getMap();
         if (!(branchMap.containsKey(branchFirst) && branchMap.containsKey(branchOther))) {
             throw error("A branch with that name does not exist.");
         } else if (branchFirst.equals(branchOther)) {
             throw error("Cannot merge a branch with itself.");
         }
+        Commit commitFirst = Commit.importCommit(branchMap.get(branchFirst));
+        Commit commitOther = Commit.importCommit(branchMap.get(branchOther));
 
-
-        return "";
+        List<String> firstAncestors = new ArrayList<>();
+        var current = commitFirst;
+        while (current.hasParent()) {
+            firstAncestors.add(current.getHash());
+            current = Commit.importCommit(current.getParentHash());
+        }
+        current = commitOther;
+        while (current.hasParent()) {
+            if (firstAncestors.contains(current.getHash())) {
+                latestCommonAncestor = current.getHash();
+                break;
+            } else {
+                current = Commit.importCommit(current.getParentHash());
+            }
+        }
+        return latestCommonAncestor;
     }
 }
