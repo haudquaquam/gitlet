@@ -23,10 +23,16 @@ public class Stage implements Serializable {
 
     public static void addBlob(Blob blob) {
         if (!fetchHeadCommit().contains(blob)) {
-            Stage updatedStage = fetchAddStage();
-            updatedStage.getStage().put(blob.getFileName(), blob.getHash());
-            writeObject(ADD_STAGE_FILE, updatedStage);
-            exportBlob(blob);
+            if (fetchRemoveStage().getStage().containsKey(blob.getFileName())) {
+                Stage updatedRemoveStage = fetchRemoveStage();
+                updatedRemoveStage.getStage().remove(blob.getFileName());
+                writeObject(REMOVE_STAGE_FILE, updatedRemoveStage);
+            } else {
+                Stage updatedStage = fetchAddStage();
+                updatedStage.getStage().put(blob.getFileName(), blob.getHash());
+                writeObject(ADD_STAGE_FILE, updatedStage);
+                exportBlob(blob);
+            }
         }
     }
 
@@ -37,12 +43,18 @@ public class Stage implements Serializable {
             updatedAddStage.getStage().remove(blob.getFileName());
             writeObject(ADD_STAGE_FILE, updatedAddStage);
         } else if (fetchHeadCommit().contains(blob)) {
-            updatedRemoveStage.getStage().put(blob.getFileName(), blob.getHash());
+            updatedRemoveStage.getStage().put(blob.getFileName(),
+                   blob.getHash());
             restrictedDelete(blob.getFileName());
             writeObject(REMOVE_STAGE_FILE, updatedRemoveStage);
         } else {
             message("No reason to remove the file.");
             System.exit(0);
         }
+    }
+
+    public static void removeFileFromRemoveStage(File file,
+                                                Serializable object) {
+        writeObject(file, object);
     }
 }

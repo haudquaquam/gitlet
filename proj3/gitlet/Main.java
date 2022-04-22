@@ -361,7 +361,7 @@ public class Main {
         System.out.println("=== Staged Files ===");
         Stage addStage = fetchAddStage();
         ArrayList<String> addedFiles =
-                new ArrayList<>(addStage.getStage().values());
+                new ArrayList<>(addStage.getStage().keySet());
         Collections.sort(addedFiles);
         for (String fileName : addedFiles) {
             System.out.println(fileName);
@@ -369,9 +369,9 @@ public class Main {
         System.out.println();
 
         System.out.println("=== Removed Files ===");
-        Stage removeStage = fetchAddStage();
+        Stage removeStage = fetchRemoveStage();
         ArrayList<String> removedFiles =
-                new ArrayList<>(removeStage.getStage().values());
+                new ArrayList<>(removeStage.getStage().keySet());
         Collections.sort(removedFiles);
         for (String fileName : removedFiles) {
             System.out.println(fileName);
