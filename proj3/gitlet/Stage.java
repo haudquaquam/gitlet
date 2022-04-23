@@ -9,18 +9,28 @@ import static gitlet.Blob.exportBlob;
 import static gitlet.Main.*;
 import static gitlet.Utils.*;
 
+/** Class that represents both the Add and Remove Stages. The "Stage" is what
+ *  contains the files that are to be added or removed from a Commit.
+ *  @author Rae Xin
+ *  */
 public class Stage implements Serializable {
 
-    private Map<String, String> _stage; //map between filename and -B-l-o-b- SHA-1 hash
+    /** Map that represents the stage, a map between a filename and a SHA-1
+     * hash. */
+    private Map<String, String> _stage;
 
+    /** Construct a Stage object by setting its stage to a new TreeMap. */
     public Stage() {
         _stage = new TreeMap<>();
     }
 
+    /** Getter method that returns a Stage object's _STAGE. */
     public Map<String, String> getStage() {
         return _stage;
     }
 
+    /** Given BLOB, add this Blob to the Add Stage, or remove it from the
+     * Remove Stage if it is present there. */
     public static void addBlob(Blob blob) {
         if (!fetchHeadCommit().contains(blob)) {
             if (fetchRemoveStage().getStage().containsKey(blob.getFileName())) {
@@ -36,6 +46,9 @@ public class Stage implements Serializable {
         }
     }
 
+    /** Given BLOB, remove it from the Add Stage, or if the Blob is present
+     * in the Head Commit, add BLOB to the Remove Stage and delete it from
+     * the Current Working Directory. */
     public static void removeBlob(Blob blob) {
         Stage updatedAddStage = fetchAddStage();
         Stage updatedRemoveStage = fetchRemoveStage();
@@ -53,6 +66,7 @@ public class Stage implements Serializable {
         }
     }
 
+    /** Given FILE and OBJECT, will remove FILE from the Remove Stage. */
     public static void removeFileFromRemoveStage(File file,
                                                 Serializable object) {
         writeObject(file, object);

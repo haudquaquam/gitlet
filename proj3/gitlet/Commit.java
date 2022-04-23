@@ -1,29 +1,71 @@
 package gitlet;
 
-import org.antlr.v4.runtime.tree.Tree;
+import java.io.File;
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
-import java.io.*;
-import java.util.*;
-
-import static gitlet.Blob.getBlobHash;
 import static gitlet.Branch.fetchActiveBranchName;
 import static gitlet.Branch.importBranches;
-import static gitlet.Main.*;
-import static gitlet.Utils.*;
+import static gitlet.Main.COMMITS_FOLDER;
+import static gitlet.Main.CWD;
+import static gitlet.Main.clearAddStage;
+import static gitlet.Main.clearRemoveStage;
+import static gitlet.Main.fetchAddStage;
+import static gitlet.Main.fetchHeadCommit;
+import static gitlet.Main.fetchRemoveStage;
+import static gitlet.Main.formatDate;
+import static gitlet.Main.getCWDFiles;
+import static gitlet.Utils.UID_LENGTH;
+import static gitlet.Utils.message;
+import static gitlet.Utils.plainFilenamesIn;
+import static gitlet.Utils.readObject;
+import static gitlet.Utils.sha1;
+import static gitlet.Utils.writeObject;
 
+
+/** This class represents a Commit, which contains information about a
+ * certain commit, including its message, timestamp, parent(s), and of
+ * course, its Blobs.
+ * @author Rae Xin
+ * */
 public class Commit implements Serializable {
 
-    private Map<String, String> _commitMap; // file name : SHA-1 hash
-    private Stage _addStage;
-    private Stage _removeStage;
-    private final String MESSAGE_STR = "message";
-    private final String TIMESTAMP_STR = "timestamp";
-    private final String PARENT_STR = "parent";
-    private final String PARENT2_STR = "parent2";
-    private final ArrayList<String> defaultKeys = new ArrayList<>
-            (List.of(MESSAGE_STR, TIMESTAMP_STR, PARENT_STR, PARENT2_STR));
+    /** Maps default information to magic strings, as well as
+     * filenames to SHA-1 hashes for Blobs. */
+    private Map<String, String> _commitMap;
 
-    public Commit(String message, Date timestamp, String parentHash, String parent2Hash) {
+    /** Holds the current Add Stage. */
+    private Stage _addStage;
+
+    /** Holds the current Remove Stage. */
+    private Stage _removeStage;
+
+    /** Magic String that is mapped to the actual message. */
+    private final String _messageStr = "message";
+
+    /** Magic String that is mapped to the actual timestamp. */
+    private final String _timestampStr = "timestamp";
+
+    /** Magic String that is mapped to the parent's SHA-1 hash. */
+    private final String _parentStr = "parent";
+
+    /** Magic String that is mapped to the second parent's SHA-1 hash. */
+    private final String _parent2Str = "parent2";
+
+    /** ArrayList of all magic words so that we can easily check keys in the
+     * commitMap against these. */
+    private final List<String> _defaultKeys =
+            List.of(_messageStr, _timestampStr, _parentStr, _parent2Str);
+
+    /** Constructs a COMMIT object from MESSAGE, TIMESTAMP, PARENTHASH, and
+     * PARENT2HASH. */
+    public Commit(String message, Date timestamp, String parentHash,
+                  String parent2Hash) {
         _addStage = fetchAddStage();
         _removeStage = fetchRemoveStage();
         _commitMap = new TreeMap<>();
@@ -31,16 +73,19 @@ public class Commit implements Serializable {
             message("Please enter a commit message.");
             System.exit(0);
         }
-        _commitMap.put(MESSAGE_STR, message);
-        _commitMap.put(TIMESTAMP_STR, formatDate(timestamp));
-        _commitMap.put(PARENT_STR, parentHash);
-        _commitMap.put(PARENT2_STR, parent2Hash);
+        _commitMap.put(_messageStr, message);
+        _commitMap.put(_timestampStr, formatDate(timestamp));
+        _commitMap.put(_parentStr, parentHash);
+        _commitMap.put(_parent2Str, parent2Hash);
     }
 
+    /** Constructs a COMMIT object when only given MESSAGE, TIMESTAMP, and
+     * PARENT. */
     public Commit(String message, Date timestamp, String parent) {
         this(message, timestamp, parent, null);
     }
 
+    /** Returns the SHA-1 hash of the given commit. */
     public String getHash() {
         String hashID = "commit";
         for (Map.Entry<String, String> entry : _commitMap.entrySet()) {
@@ -49,9 +94,12 @@ public class Commit implements Serializable {
         return sha1(hashID);
     }
 
+    /** Returns a Commit, pulled from the inputted COMMITHASH, which is the
+     * filename of this Commit within the Commits folder. */
     public static Commit importCommit(String commitHash) {
-        if (commitHash.length() < 40) {
-            List<String> allCommitHashes = new ArrayList<>(plainFilenamesIn(COMMITS_FOLDER));
+        if (commitHash.length() < UID_LENGTH) {
+            List<String> allCommitHashes =
+                    new ArrayList<>(plainFilenamesIn(COMMITS_FOLDER));
             for (String possibleMatch : allCommitHashes) {
                 if (possibleMatch.indexOf(commitHash) == 0) {
                     commitHash = possibleMatch;
@@ -66,65 +114,88 @@ public class Commit implements Serializable {
         return readObject(commitFile, Commit.class);
     }
 
+    /** Writes the current commit to its corresponding file in the Commits
+     * folder. Updates its contents if it already exists, creates new file if
+     * it does not yet exist. */
     public void exportCommit() {
         String commitHash = this.getHash();
         File commitFile = new File(COMMITS_FOLDER, commitHash);
-        writeObject(commitFile , this);
+        try {
+            commitFile.createNewFile();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        writeObject(commitFile, this);
     }
 
+    /** Returns whether the current Commit is a valid Commit. Validity
+     * is ensured by checking that either the Add Stage or the Remove Stage
+     * is not empty. */
     public boolean validCommit() {
-        return (!(fetchAddStage().getStage().isEmpty() && fetchRemoveStage().getStage().isEmpty()));
+        boolean flag = fetchAddStage().getStage().isEmpty();
+        return (!(flag && fetchRemoveStage().getStage().isEmpty()));
     }
 
+    /** Processes the Add and Remove Stages of this Commit, first importing
+     * all Blobs from its parent Commit, then adding all items from this
+     * Commit's Add Stage, then removing all items from this Commit's Remove
+     * Stage. */
     public void processStage() {
         Commit parent1, parent2 = null;
-
-        if (_commitMap.get(PARENT_STR) != null) { // NOT initial commit
-            parent1 = importCommit(_commitMap.get(PARENT_STR));
-            for (Map.Entry<String, String> entry : parent1._commitMap.entrySet()) {
-                if (!defaultKeys.contains(entry.getKey())) {
+        if (_commitMap.get(_parentStr) != null) {
+            parent1 = importCommit(_commitMap.get(_parentStr));
+            for (Map.Entry<String, String> entry
+                    : parent1._commitMap.entrySet()) {
+                if (!_defaultKeys.contains(entry.getKey())) {
                     _commitMap.put(entry.getKey(), entry.getValue());
                 }
             }
-            // copies parent _commitMap over to current Commit's _commitMap
             _commitMap.putAll(_addStage.getStage());
-            for (Map.Entry<String, String> entry : _removeStage.getStage().entrySet()) {
+            for (Map.Entry<String, String> entry
+                    : _removeStage.getStage().entrySet()) {
                 _commitMap.remove(entry.getKey(), entry.getValue());
             }
         }
         clearAddStage();
         clearRemoveStage();
-        /*if (_commitMap.get(PARENT2_STR) != null) {
-            parent2 = importCommit(_commitMap.get(PARENT2_STR));
-        }*/
     }
 
+    /** Returns whether this Commit contains BLOB. */
     public boolean contains(Blob blob) {
         String blobFileName = blob.getFileName();
         String blobHash = blob.getHash();
-        return _commitMap.containsKey(blobFileName) && _commitMap.containsValue(blobHash);
+        return _commitMap.containsKey(blobFileName)
+                && _commitMap.containsValue(blobHash);
     }
 
+    /** Returns whether this Commit has a parent Commit. Equivalent to
+     * checking whether this Commit is the initial Commit, as that should be
+     * the only Commit without a parent. */
     public boolean hasParent() {
-        return (_commitMap.get(PARENT_STR) != null);
+        return (_commitMap.get(_parentStr) != null);
     }
 
+    /** Returns the timestamp of the current Commit. */
     public String getDate() {
-        return _commitMap.get(TIMESTAMP_STR);
+        return _commitMap.get(_timestampStr);
     }
 
+    /** Returns the message of the current Commit. */
     public String getMessage() {
-        return _commitMap.get(MESSAGE_STR);
+        return _commitMap.get(_messageStr);
     }
 
+    /** Returns the first parent's hash in the current Commit. */
     public String getParentHash() {
-        return _commitMap.get(PARENT_STR);
+        return _commitMap.get(_parentStr);
     }
 
+    /** Returns the first parent Commit of the current Commit. */
     public Commit getParentCommit() {
         return importCommit(getParentHash());
     }
 
+    /** Returns the SHA-1 hash of the file FILENAME as it exists in COMMIT. */
     public static String getFileHashFromName(Commit commit, String fileName) {
         Map<String, String> commitMap = commit._commitMap;
         if (!commitMap.containsKey(fileName)) {
@@ -134,95 +205,79 @@ public class Commit implements Serializable {
         return commitMap.get(fileName);
     }
 
+    /** Given Commit specified by COMMITHASH, updates the current (active)
+     * Branch, pointing it to the given Commit. */
     public static void updateActiveBranchWithLatestCommit(String commitHash) {
         Branch branches = importBranches();
         String activeBranch = fetchActiveBranchName();
         Map<String, String> branchMap = branches.getMap();
         branchMap.put(activeBranch, commitHash);
         branches.exportBranch();
-        /*System.out.println("Active Branch File: " + readContentsAsString(ACTIVE_BRANCH_FILE));
-        Branch branches = importBranches();
-        Map<String, String> branchMap = branches.getMap();
-        for (Map.Entry<String, String> entry : branchMap.entrySet()) {
-            System.out.println(entry.getKey() + " val: " + entry.getValue());
-        }*/
     }
 
+    /** Given the Commit, COMMIT, returns a TreeMap of all files within this
+     * Commit that are modified or deleted, but not staged. The TreeMap maps
+     * a filename to its status, either "(modified)" or "(deleted)". */
     public static Map<String, String> findModifiedFiles(Commit commit) {
-        Map<String, String> trackedFiles = new TreeMap<>(commit.getStrippedMap()); //Map of all tracked from last commit
-        Map<String, String> addStageFiles = fetchAddStage().getStage();  //Map of all files from add stage
+        Map<String, String> trackedFiles =
+                new TreeMap<>(commit.getStrippedMap());
+        Map<String, String> addStageFiles = fetchAddStage().getStage();
         Map<String, String> removeStageFiles = fetchRemoveStage().getStage();
-        Map<String, String> cwdFiles = new TreeMap<>(); //Map of all files in CWD
-        List<String> cwdFileName = new ArrayList<>(plainFilenamesIn(CWD));
-        for (String fileName : cwdFileName) {
-            File currentFile = new File(CWD, fileName);
-            cwdFiles.put(fileName, getBlobHash(currentFile));
-        }
-
+        Map<String, String> cwdFiles = getCWDFiles();
         Map<String, String> modifiedNotStaged = new TreeMap<>();
-
-        // case 1: tracked in the current commit, changed in the working
-        // directory, but not staged
         for (String fileName : cwdFiles.keySet()) {
             String cwdHash = cwdFiles.get(fileName);
             if (trackedFiles.containsKey(fileName)) {
-                // if this FILENAME is tracked
                 if (!(cwdHash.equals(trackedFiles.get(fileName)))) {
-                    // if CWD file hash is not equal to tracked file hash
-                    // meaning that the file contents are different
                     if (!(addStageFiles.containsKey(fileName))) {
-                        // ADDSTAGE does not contain this file. not staged
                         modifiedNotStaged.put(fileName, "(modified)");
                     }
                 }
             }
-
-            // case 2: staged for addition, but with different contents
-            // than in the working directory
-            if (addStageFiles.containsKey(fileName) &&
-                    !(cwdHash.equals(addStageFiles.get(fileName)))) {
-                // if file is in add stage, but the hashes are different
+            if (addStageFiles.containsKey(fileName)
+                    && !(cwdHash.equals(addStageFiles.get(fileName)))) {
                 modifiedNotStaged.put(fileName, "(modified)");
             }
         }
-
-        // case 3: staged for addition, but deleted in the working directory
         for (String fileName : addStageFiles.keySet()) {
             if (!cwdFiles.containsKey(fileName)) {
                 modifiedNotStaged.put(fileName, "(deleted)");
             }
         }
-
-        // case 4: not staged for removal, but tracked in the current
-        // commit and deleted from the working directory
         for (String fileName : trackedFiles.keySet()) {
-            if (!cwdFiles.containsKey(fileName) && !removeStageFiles.containsKey(fileName)) {
+            if (!cwdFiles.containsKey(fileName)
+                    && !removeStageFiles.containsKey(fileName)) {
                 modifiedNotStaged.put(fileName, "(deleted)");
             }
         }
         return modifiedNotStaged;
     }
 
+    /** Returns an ArrayList of files that exist in the Current Working
+     * Directory, but do not exist in the Head Commit or any of the Stages. */
     public static List<String> findUntrackedFiles() {
-        Map<String, String> trackedFiles = new TreeMap<>(fetchHeadCommit().getStrippedMap()); //Map of all tracked from last commit
-        Map<String, String> addStageFiles = fetchAddStage().getStage();  //Map of all files from add stage
+        Map<String, String> trackedFiles =
+                new TreeMap<>(fetchHeadCommit().getStrippedMap());
+        Map<String, String> addStageFiles = fetchAddStage().getStage();
         Map<String, String> removeStageFiles = fetchRemoveStage().getStage();
-        List<String> untrackedFiles = new ArrayList<>(); // return this
+        List<String> untrackedFiles = new ArrayList<>();
         List<String> cwdFileName = new ArrayList<>(plainFilenamesIn(CWD));
-        for (String fileName : cwdFileName) { //fileName
-            if (!(removeStageFiles.containsKey(fileName)) &&
-                    !(addStageFiles.containsKey(fileName)) &&
-                    !(trackedFiles.containsKey(fileName))) {
+        for (String fileName : cwdFileName) {
+            if (!(removeStageFiles.containsKey(fileName))
+                    && !(addStageFiles.containsKey(fileName))
+                    && !(trackedFiles.containsKey(fileName))) {
                 untrackedFiles.add(fileName);
             }
         }
         return untrackedFiles;
     }
 
+    /** Returns a TreeMap of the current Commit's commitMap, minus any of the
+     magic keys. */
     public Map<String, String> getStrippedMap() {
         Map<String, String> processedMap = new TreeMap<>();
         for (Map.Entry<String, String> entry : _commitMap.entrySet()) {
-            if (!defaultKeys.contains(entry.getKey())) {
+            if (!_defaultKeys.contains(entry.getKey())) {
                 processedMap.put(entry.getKey(), entry.getValue());
             }
         }
@@ -234,7 +289,8 @@ public class Commit implements Serializable {
 
         if (_commitMap.get(PARENT_STR) != null) {
             parent1 = importCommit(_commitMap.get(PARENT_STR));
-            for (Map.Entry<String, String> entry : parent1._commitMap.entrySet()) {
+            for (Map.Entry<String, String> entry
+            : parent1._commitMap.entrySet()) {
                 if (!defaultKeys.contains(entry.getKey())) {
                     _commitMap.put(entry.getKey(), entry.getValue());
                 }

@@ -3,14 +3,31 @@ package gitlet;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Collections;
+import java.util.Date;
+import java.util.ArrayList;
+import java.util.TreeMap;
 
 import static gitlet.Blob.getBlobHash;
-import static gitlet.Branch.*;
-import static gitlet.Commit.*;
+import static gitlet.Branch.importBranches;
+import static gitlet.Branch.fetchActiveBranchName;
+import static gitlet.Branch.updateActiveBranch;
+import static gitlet.Branch.findLatestCommonAncestor;
+import static gitlet.Branch.deleteBranch;
+import static gitlet.Commit.findModifiedFiles;
+import static gitlet.Commit.findUntrackedFiles;
+import static gitlet.Commit.getFileHashFromName;
+import static gitlet.Commit.importCommit;
+import static gitlet.Commit.updateActiveBranchWithLatestCommit;
 import static gitlet.Stage.addBlob;
 import static gitlet.Stage.removeBlob;
-import static gitlet.Utils.*;
+import static gitlet.Utils.message;
+import static gitlet.Utils.plainFilenamesIn;
+import static gitlet.Utils.readObject;
+import static gitlet.Utils.writeContents;
+import static gitlet.Utils.writeObject;
 
 /** Driver class for Gitlet, the tiny stupid version-control system.
  *  @author Rae Xin
@@ -67,117 +84,122 @@ public class Main {
             System.exit(0);
         }
         switch (args[0]) {
-            case "init":
-                initializeRepo();
-                break;
-            case "commit":
-                if (!(args.length > 1)) {
-                    message("Please enter a commit message.");
-                    System.exit(0);
-                }
-                Commit newCommit = new Commit(args[1], new Date(),
-                        fetchHeadCommitHash());
-                if (!newCommit.validCommit()) {
-                    message("No changes added to the commit.");
-                    System.exit(0);
-                } else {
-                    updateActiveBranchWithLatestCommit(processCommit(newCommit));
-                }
-                break;
-            case "add":
-                if (args.length != 2) {
-                    message("Incorrect operands.");
-                    System.exit(0);
-                }
-                File addFile = new File(CWD, args[1]);
-                if (!addFile.exists()) {
-                    message("File does not exist.");
-                    System.exit(0);
-                }
-                stageForAddition(addFile);
-                break;
-            case "rm":
-                if (args.length != 2) {
-                    message("Incorrect operands.");
-                    System.exit(0);
-                }
-                File removeFile = new File(CWD, args[1]);
-                if (!removeFile.exists()) {
-                    message("File does not exist.");
-                    System.exit(0);
-                }
-                stageForRemoval(removeFile);
-                break;
-            case "log":
-                if (args.length > 1) {
-                    message("Incorrect operands.");
-                    System.exit(0);
-                }
-                displayLog();
-                break;
-            case "global-log":
-                if (args.length > 1) {
-                    message("Incorrect operands.");
-                    System.exit(0);
-                }
-                displayGlobalLog();
-                break;
-            case "find":
-                if (args.length != 2) {
-                    message("Incorrect operands.");
-                    System.exit(0);
-                }
-                findAllCommitsByMessage(args[1]);
-                break;
-            case "status":
-                if (args.length > 1) {
-                    message("Incorrect operands.");
-                    System.exit(0);
-                }
-                displayStatus();
-                break;
-            case "checkout":
-                if (args.length < 2 || args.length > 4) {
-                    message("Incorrect operands.");
-                    System.exit(0);
-                }
-                if (args[1].equals("--")) {
-                    checkoutFile(fetchHeadCommit(), args[2]);
-                } else if (args[2].equals("--")) {
-                    checkoutFile(importCommit(args[1]), args[3]);
-                } else if (args.length == 2) {
-                    checkoutBranch(args[1]);
-                } else {
-                    message("Incorrect operands.");
-                    System.exit(0);
-                }
-                break;
-            case "branch":
-                if (args.length != 2) {
-                    message("Incorrect operands.");
-                    System.exit(0);
-                }
-                updateBranch(args[1], fetchHeadCommitHash());
-                break;
-            case "rm-branch":
-                if (args.length != 2) {
-                    message("Incorrect operands.");
-                    System.exit(0);
-                }
-                deleteBranch(args[1]);
-                break;
-            case "reset":
-                if (args.length != 2) {
-                    message("Incorrect operands.");
-                    System.exit(0);
-                }
-                reset(args[1]);
-                break;
-            case "merge":
-                break;
-            default:
-                message("No command with that name exists.");
+        case "init":
+            initializeRepo();
+            break;
+        case "commit":
+            if (!(args.length > 1)) {
+                message("Please enter a commit message.");
                 System.exit(0);
+            }
+            Commit newCommit = new Commit(args[1], new Date(),
+                    fetchHeadCommitHash());
+            if (!newCommit.validCommit()) {
+                message("No changes added to the commit.");
+                System.exit(0);
+            } else {
+                updateActiveBranchWithLatestCommit(processCommit(newCommit));
+            }
+            break;
+        case "add":
+            if (args.length != 2) {
+                message("Incorrect operands.");
+                System.exit(0);
+            }
+            File addFile = new File(CWD, args[1]);
+            if (!addFile.exists()) {
+                message("File does not exist.");
+                System.exit(0);
+            }
+            stageForAddition(addFile);
+            break;
+        case "rm":
+            if (args.length != 2) {
+                message("Incorrect operands.");
+                System.exit(0);
+            }
+            File removeFile = new File(CWD, args[1]);
+            if (!removeFile.exists()) {
+                message("File does not exist.");
+                System.exit(0);
+            }
+            stageForRemoval(removeFile);
+            break;
+        case "log":
+            if (args.length > 1) {
+                message("Incorrect operands.");
+                System.exit(0);
+            }
+            displayLog();
+            break;
+        case "global-log":
+            if (args.length > 1) {
+                message("Incorrect operands.");
+                System.exit(0);
+            }
+            displayGlobalLog();
+            break;
+        case "find":
+            if (args.length != 2) {
+                message("Incorrect operands.");
+                System.exit(0);
+            }
+            findAllCommitsByMessage(args[1]);
+            break;
+        case "status":
+            if (args.length > 1) {
+                message("Incorrect operands.");
+                System.exit(0);
+            }
+            displayStatus();
+            break;
+        case "checkout":
+            if (args.length < 2 || args.length > 4) {
+                message("Incorrect operands.");
+                System.exit(0);
+            }
+            if (args[1].equals("--")) {
+                checkoutFile(fetchHeadCommit(), args[2]);
+            } else if (args[2].equals("--")) {
+                checkoutFile(importCommit(args[1]), args[3]);
+            } else if (args.length == 2) {
+                checkoutBranch(args[1]);
+            } else {
+                message("Incorrect operands.");
+                System.exit(0);
+            }
+            break;
+        case "branch":
+            if (args.length != 2) {
+                message("Incorrect operands.");
+                System.exit(0);
+            }
+            updateBranch(args[1], fetchHeadCommitHash());
+            break;
+        case "rm-branch":
+            if (args.length != 2) {
+                message("Incorrect operands.");
+                System.exit(0);
+            }
+            deleteBranch(args[1]);
+            break;
+        case "reset":
+            if (args.length != 2) {
+                message("Incorrect operands.");
+                System.exit(0);
+            }
+            reset(args[1]);
+            break;
+        case "merge":
+            if (args.length != 2) {
+                message("Incorrect operands.");
+                System.exit(0);
+            }
+            merge(args[1]);
+            break;
+        default:
+            message("No command with that name exists.");
+            System.exit(0);
         }
     }
 
@@ -202,11 +224,9 @@ public class Main {
 
                 updateBranch("master", commitHash);
                 updateActiveBranch("master");
-                // put commit hash into branches and head
-
             } else {
-                message("A Gitlet version-control system already " +
-                        "exists in the current directory.");
+                message("A Gitlet version-control system already "
+                        + "exists in the current directory.");
                 System.exit(0);
             }
         } catch (IOException e) {
@@ -214,7 +234,8 @@ public class Main {
         }
     }
 
-    /** Handles processing of a commit with MESSAGE, TIMESTAMP, and PARENT. */
+    /** Handles processing of a Commit with MESSAGE, TIMESTAMP, and PARENT.
+     * Returns the SHA-1 hash of the Commit. */
     public static String processCommit(String message, Date timestamp,
                                        String parent) {
         Commit commit = new Commit(message, timestamp, parent);
@@ -300,7 +321,8 @@ public class Main {
         }
     }
 
-    /** Handles formatting of DATE. Returns a String of the formatted Date. */
+    /** Handles formatting of DATE. Returns a String of the formatted Date.
+     * in correct (desired) form. */
     public static String formatDate(Date date) {
         SimpleDateFormat formatter =
                 new SimpleDateFormat("E MMM dd HH:mm:ss yyyy Z");
@@ -318,19 +340,21 @@ public class Main {
 
     /** Displays all commits made in this repo, ever. */
     private static void displayGlobalLog() {
-        ArrayList<String> listFileNames = new ArrayList<>(plainFilenamesIn(COMMITS_FOLDER));
+        ArrayList<String> listFileNames =
+                new ArrayList<>(plainFilenamesIn(COMMITS_FOLDER));
         for (String hash : listFileNames) {
-            Commit currentCommit = Commit.importCommit(hash);
+            Commit currentCommit = importCommit(hash);
             printCommit(currentCommit);
         }
     }
 
     /** Prints hashes of all commits with the message, MESSAGE. */
     private static void findAllCommitsByMessage(String message) {
-        ArrayList<String> listFileNames = new ArrayList<>(plainFilenamesIn(COMMITS_FOLDER));
+        ArrayList<String> listFileNames =
+                new ArrayList<>(plainFilenamesIn(COMMITS_FOLDER));
         int foundCommits = 0;
         for (String hash : listFileNames) {
-            Commit currentCommit = Commit.importCommit(hash);
+            Commit currentCommit = importCommit(hash);
             if (currentCommit.getMessage().equals(message)) {
                 System.out.println(currentCommit.getHash());
                 foundCommits++;
@@ -342,7 +366,7 @@ public class Main {
         }
     }
 
-    /** Displays status by printing. */
+    /** Prints out current status. */
     private static void displayStatus() {
         Branch branch = importBranches();
         ArrayList<String> branchNameArray =
@@ -426,32 +450,28 @@ public class Main {
             oldCommit = importCommit(branchesMap.get(fetchActiveBranchName()));
             desiredCommit = importCommit(branchesMap.get(branchName));
         }
-        Map<String, String> cwdFiles = new TreeMap<>(); //Map of all files in CWD
-        List<String> cwdFileName = new ArrayList<>(plainFilenamesIn(CWD));
-        for (String fileName : cwdFileName) {
-            File currentFile = new File(CWD, fileName);
-            cwdFiles.put(fileName, getBlobHash(currentFile));
-        }
-        // take all files in DESIREDCOMMIT and put them in CWD, overwriting
-        // the versions of the files that are already there if they exist.
+        Map<String, String> cwdFiles = getCWDFiles();
 
-        // but first check that all filenames in DESIREDCOMMIT that exist
-        // in CWD are tracked and not modified if tracked
+         /*take all files in DESIREDCOMMIT and put them in CWD, overwriting
+         the versions of the files that are already there if they exist.
+         but first check that all filenames in DESIREDCOMMIT that exist
+         in CWD are tracked and not modified if tracked*/
         for (String fileName : desiredCommit.getStrippedMap().keySet()) {
             if (cwdFiles.containsKey(fileName)) {
                 Blob blob = new Blob(new File(CWD, fileName));
                 if (!oldCommit.contains(blob)) {
-                    message("There is an untracked file in the way; " +
-                            "delete it, or add and commit it first.");
+                    message("There is an untracked file in the way; "
+                            + "delete it, or add and commit it first.");
                     System.exit(0);
                 }
             }
         }
         for (String fileName : oldCommit.getStrippedMap().keySet()) {
-            // any files that are tracked in the current branch but are not
-            // present in the checked-out branch are deleted. deletes all
-            // files in the current branch that do not exist in desired commit
-            if (cwdFiles.containsKey(fileName) && !desiredCommit.getStrippedMap().containsKey(fileName)) {
+            /* any files that are tracked in the current branch but are not
+             present in the checked-out branch are deleted. deletes all
+             files in the current branch that do not exist in desired commit*/
+            if (cwdFiles.containsKey(fileName)
+                    && !desiredCommit.getStrippedMap().containsKey(fileName)) {
                 File toBeDeleted = new File(CWD, fileName);
                 toBeDeleted.delete();
             }
@@ -469,44 +489,36 @@ public class Main {
         Commit desiredCommit = importCommit(commitHash);
         Commit oldCommit = importCommit(fetchHeadCommitHash());
         var oldFileNames = oldCommit.getStrippedMap().keySet();
-        var desiredFileNames = desiredCommit.getStrippedMap().keySet();
+        var desiredFileNames =
+                desiredCommit.getStrippedMap().keySet();
 
-        Map<String, String> cwdFiles = new TreeMap<>(); //Map of all files in CWD
+        Map<String, String> cwdFiles = getCWDFiles();
         List<String> cwdFileName = new ArrayList<>(plainFilenamesIn(CWD));
-        for (String fileName : cwdFileName) {
-            File currentFile = new File(CWD, fileName);
-            cwdFiles.put(fileName, getBlobHash(currentFile));
-        }
-
         for (String fileName : desiredFileNames) {
             if (cwdFileName.contains(fileName)) {
                 Blob blob = new Blob(new File(CWD, fileName));
                 if (!oldCommit.contains(blob)) {
-                    message("There is an untracked file in the way; " +
-                            "delete it, or add and commit it first.");
+                    message("There is an untracked file in the way; "
+                            + "delete it, or add and commit it first.");
                     System.exit(0);
                 }
             }
         }
-
         for (String fileName : oldFileNames) {
             if (!desiredFileNames.contains(fileName)) {
                 File removeFile = new File(CWD, fileName);
                 removeFile.delete();
             }
         }
-
         for (String fileName : desiredFileNames) {
             checkoutFile(desiredCommit, fileName);
         }
-
         updateBranch(fetchActiveBranchName(), commitHash);
-
-
         clearAddStage();
         clearRemoveStage();
     }
 
+    /** Handles merging of the current branch with GIVENBRANCH. */
     public static void merge(String givenBranch) {
         Branch branches = importBranches();
         var branchMap = branches.getMap();
@@ -518,81 +530,106 @@ public class Main {
             message("Cannot merge a branch with itself.");
             System.exit(0);
         }
-        var givenCommitHash = branchMap.get(givenBranch);
-        var currentCommitHash = branchMap.get(currentBranch);
-
-        var latestCommonAncestor = findLatestCommonAncestor(givenBranch, currentBranch);
-
+        String givenCommitHash = branchMap.get(givenBranch);
+        String currentCommitHash = branchMap.get(currentBranch);
+        String latestCommonAncestor = findLatestCommonAncestor(givenBranch,
+                currentBranch);
         if (latestCommonAncestor.equals(givenBranch)) {
-            System.out.println("Given branch is an ancestor of the current branch.");
+            System.out.println("Given branch is an ancestor "
+                    + "of the current branch.");
             return;
         } else if (latestCommonAncestor.equals(currentBranch)) {
             checkoutBranch(givenBranch);
             System.out.println("Current branch fast-forwarded.");
         }
+        /* FAILURE CASE: if stages contain adds/removes, error with:
+         "You have uncommitted changes."
 
-        // FAILURE CASE: if stages contain adds/removes, error with:
-        // "You have uncommitted changes."
+         FAILURE CASE: if branch does not exist, error:
+         "A branch with that name does not exist."
 
-        // FAILURE CASE: if branch does not exist, error:
-        // "A branch with that name does not exist."
+         FAILURE CASE: attempting to merge branch with itself, error:
+         "Cannot merge a branch with itself."
 
-        // FAILURE CASE: attempting to merge branch with itself, error:
-        // "Cannot merge a branch with itself."
+         FAILURE CASE: untracked file in current commit that would be
+         overwritten or deleted by merge, error:
+         "There is an untracked file in the way; delete it, or
+         add and commit it first."
 
-        // FAILURE CASE: untracked file in current commit that would be
-        // overwritten or deleted by merge, error:
-        // "There is an untracked file in the way; delete it, or
-        // add and commit it first."
-
-        // any files that have been modified in the GIVENBRANCH since the split point,
-        // but not modified in the CURRENTBRANCH since the split point should be changed
-        // to their versions in the GIVENBRANCH. (checkout from GIVENBRANCH's HEAD COMMIT)
-        // then, stage all of those files in CURRENTBRANCH
+         any files that have been modified in the GIVENBRANCH since the split
+         point,
+         but not modified in the CURRENTBRANCH since the split point should
+         be changed
+         to their versions in the GIVENBRANCH. (checkout from GIVENBRANCH's
+         HEAD COMMIT) then, stage all of those files in CURRENTBRANCH
 
 
-        // any files modified in CURRENTBRANCH, but not in GIVENBRANCH should stay
+         any files modified in CURRENTBRANCH, but not in GIVENBRANCH should stay
 
-        // any files modified in BOTH the CURRENTBRANCH and GIVENBRANCH in the same way
-        // (both have same content now, or both are removed), are not changed by merge.
+         any files modified in BOTH the CURRENTBRANCH and GIVENBRANCH in the
+         same way
+         (both have same content now, or both are removed), are not changed by
+         merge.
 
-        // if file was removed from both CURRENTBRANCH and GIVENBRANCH, but file of same
-        // name exists in CWD, it is left alone and continues to be untracked in the merge.
+         if file was removed from both CURRENTBRANCH and GIVENBRANCH, but file
+         of same
+         name exists in CWD, it is left alone and continues to be untracked in
+         the merge.
 
-        // any files not in the split point, and only in the GIVENBRANCH should be checked
-        // out and STAGED!
+         any files not in the split point, and only in the GIVENBRANCH should
+         be checked out and STAGED!
 
-        // any files not present in the split point, and only exist in the CURRENTBRANCH
-        // should stay as they are
+         any files not present in the split point, and only exist in the
+         CURRENTBRANCH
+         should stay as they are
 
-        // any files present at the split point, unchanged at the GIVENBRANCH, and not
-        // present in the CURRENTBRANCH should remain absent!
+         any files present at the split point, unchanged at the GIVENBRANCH,
+         and not
+         present in the CURRENTBRANCH should remain absent!
 
-        // MERGE CONFLICTS: modified in DIFFERENT ways in CURRENTBRANCH and GIVENBRANCH
-        // contents are both changed from split point and differnt from each other,
-        // or the contents of one are changed, and the other file is deleted. OR the file
-        // is not in split point, and it has different contents in GIVENBRANCH and
-        // CURRENTBRANCH
-        // In any of these cases:
-        // replace the contents of the conflicted file in CURRENTBRANCH with
-        /*
+         MERGE CONFLICTS: modified in DIFFERENT ways in CURRENTBRANCH and
+         GIVENBRANCH
+         contents are both changed from split point and differnt from each
+         other,
+         or the contents of one are changed, and the other file is deleted. OR
+         the file
+         is not in split point, and it has different contents in GIVENBRANCH and
+         CURRENTBRANCH
+         In any of these cases:
+         replace the contents of the conflicted file in CURRENTBRANCH with
+
          <<<<<<< HEAD
          contents of file in current branch
          =======
          contents of file in given branch
          >>>>>>>
-         */
-        // replace "contents of..." with the actual contents
-        // then, stage this file (the result). if a file is deleted, make contents empty.
-        // use straight concatenation. don't worry about files with no newlines. will
-        // give strange output
 
-        // AFTER ALL THE ABOVE: (if split point was not CURRENTBRANCH or GIVENBRANCH)
-        // commit in CURRENTBRANCH with the message:
-        // "Merged [given branch name] into [current branch name]"
-        // if there was a conflict , also PRINT the message:
-        // "Encountered a merge conflict."
+         replace "contents of..." with the actual contents
+         then, stage this file (the result). if a file is deleted, make contents
+          empty.
+         use straight concatenation. don't worry about files with no newlines.
+         will
+         give strange output
+
+         AFTER ALL THE ABOVE: (if split point was not CURRENTBRANCH or
+         GIVENBRANCH)
+         commit in CURRENTBRANCH with the message:
+         "Merged [given branch name] into [current branch name]"
+         if there was a conflict , also PRINT the message:
+         "Encountered a merge conflict."*/
 
 
+    }
+
+    /** Returns a TreeMap of all files in the Current Working Directory. Maps
+     *  the filename to its SHA-1 hash. */
+    public static Map<String, String> getCWDFiles() {
+        Map<String, String> cwdFiles = new TreeMap<>();
+        List<String> cwdFileName = new ArrayList<>(plainFilenamesIn(CWD));
+        for (String fileName : cwdFileName) {
+            File currentFile = new File(CWD, fileName);
+            cwdFiles.put(fileName, getBlobHash(currentFile));
+        }
+        return cwdFiles;
     }
 }
