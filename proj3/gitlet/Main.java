@@ -447,7 +447,7 @@ public class Main {
             message("No need to checkout the current branch.");
             System.exit(0);
         } else {
-            oldCommit = importCommit(branchesMap.get(fetchActiveBranchName()));
+            oldCommit = fetchHeadCommit();
             desiredCommit = importCommit(branchesMap.get(branchName));
         }
         Map<String, String> cwdFiles = getCWDFiles();

@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.TreeMap;
 
 import static gitlet.Branch.fetchActiveBranchName;
@@ -165,7 +166,7 @@ public class Commit implements Serializable {
         String blobFileName = blob.getFileName();
         String blobHash = blob.getHash();
         return _commitMap.containsKey(blobFileName)
-                && _commitMap.containsValue(blobHash);
+                && Objects.equals(_commitMap.get(blobFileName), blobHash);
     }
 
     /** Returns whether this Commit has a parent Commit. Equivalent to
