@@ -50,6 +50,7 @@ public class Branch implements Serializable {
             message("A branch with that name already exists.");
             System.exit(0);
         }
+        exportBranch();
     }
 
     /** Deletes the Branch specified by the name BRANCHNAME. */

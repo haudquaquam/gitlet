@@ -3,19 +3,19 @@ package gitlet;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.List;
-import java.util.Map;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
-import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.TreeMap;
 
 import static gitlet.Blob.getBlobHash;
-import static gitlet.Branch.importBranches;
-import static gitlet.Branch.fetchActiveBranchName;
-import static gitlet.Branch.updateActiveBranch;
-import static gitlet.Branch.findLatestCommonAncestor;
 import static gitlet.Branch.deleteBranch;
+import static gitlet.Branch.fetchActiveBranchName;
+import static gitlet.Branch.findLatestCommonAncestor;
+import static gitlet.Branch.importBranches;
+import static gitlet.Branch.updateActiveBranch;
 import static gitlet.Commit.findModifiedFiles;
 import static gitlet.Commit.findUntrackedFiles;
 import static gitlet.Commit.getFileHashFromName;
@@ -26,6 +26,7 @@ import static gitlet.Stage.removeBlob;
 import static gitlet.Utils.message;
 import static gitlet.Utils.plainFilenamesIn;
 import static gitlet.Utils.readObject;
+import static gitlet.Utils.restrictedDelete;
 import static gitlet.Utils.writeContents;
 import static gitlet.Utils.writeObject;
 
@@ -248,6 +249,8 @@ public class Main {
         commit.processStage();
         commit.exportCommit();
         updateHeadCommit(commit);
+        clearRemoveStage();
+        clearAddStage();
         return hash;
     }
 
@@ -255,7 +258,6 @@ public class Main {
      * the hash, COMMITHASH. */
     public static void updateBranch(String branchName, String commitHash) {
         Branch newBranch = new Branch(branchName, commitHash);
-        newBranch.exportBranch();
     }
 
     /** Sets NEWCOMMIT to be the current head commit. */
@@ -436,8 +438,7 @@ public class Main {
 
     /** Checks out entire branch by the name of BRANCHNAME. */
     private static void checkoutBranch(String branchName) {
-        Branch branches = importBranches();
-        var branchesMap = branches.getMap();
+        var branchesMap = importBranches().getMap();
         Commit oldCommit = null;
         Commit desiredCommit = null;
         if (!(branchesMap.containsKey(branchName))) {
@@ -456,24 +457,25 @@ public class Main {
          the versions of the files that are already there if they exist.
          but first check that all filenames in DESIREDCOMMIT that exist
          in CWD are tracked and not modified if tracked*/
-        for (String fileName : desiredCommit.getStrippedMap().keySet()) {
-            if (cwdFiles.containsKey(fileName)) {
-                Blob blob = new Blob(new File(CWD, fileName));
-                if (!oldCommit.contains(blob)) {
+        /*for (Map.Entry<String, String> en : cwdFiles.entrySet()) {
+            if (desiredCommit.getStrippedMap().containsKey(en.getKey())) {
+                if (!oldCommit.getStrippedMap().containsValue(en.getValue())) {
                     message("There is an untracked file in the way; "
                             + "delete it, or add and commit it first.");
                     System.exit(0);
                 }
+            } else {
+                File toBeDeleted = new File(CWD, en.getKey());
+                restrictedDelete(toBeDeleted);
             }
-        }
+        }*/
         for (String fileName : oldCommit.getStrippedMap().keySet()) {
             /* any files that are tracked in the current branch but are not
              present in the checked-out branch are deleted. deletes all
              files in the current branch that do not exist in desired commit*/
-            if (cwdFiles.containsKey(fileName)
-                    && !desiredCommit.getStrippedMap().containsKey(fileName)) {
+            if (cwdFiles.containsKey(fileName)) {
                 File toBeDeleted = new File(CWD, fileName);
-                toBeDeleted.delete();
+                restrictedDelete(toBeDeleted);
             }
         }
         for (String fileName : desiredCommit.getStrippedMap().keySet()) {
@@ -481,6 +483,7 @@ public class Main {
         }
         clearRemoveStage();
         clearAddStage();
+        updateHeadCommit(desiredCommit);
         updateActiveBranch(branchName);
     }
 
