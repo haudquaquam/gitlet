@@ -457,7 +457,7 @@ public class Main {
          the versions of the files that are already there if they exist.
          but first check that all filenames in DESIREDCOMMIT that exist
          in CWD are tracked and not modified if tracked*/
-        /*for (Map.Entry<String, String> en : cwdFiles.entrySet()) {
+        for (Map.Entry<String, String> en : cwdFiles.entrySet()) {
             if (desiredCommit.getStrippedMap().containsKey(en.getKey())) {
                 if (!oldCommit.getStrippedMap().containsValue(en.getValue())) {
                     message("There is an untracked file in the way; "
@@ -468,7 +468,7 @@ public class Main {
                 File toBeDeleted = new File(CWD, en.getKey());
                 restrictedDelete(toBeDeleted);
             }
-        }*/
+        }
         for (String fileName : oldCommit.getStrippedMap().keySet()) {
             /* any files that are tracked in the current branch but are not
              present in the checked-out branch are deleted. deletes all
