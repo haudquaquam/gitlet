@@ -350,12 +350,13 @@ public class Commit implements Serializable {
 
     /** Returns whether the file, FILENAME, is unchanged between two
      * Commits, OTHER and COMMIT. Make sure that the file exists in both
-     * Commits first. */
+     * Commits first. Returns true if file is modified, returns false if file
+     * is the same in both Commits. */
     public static boolean fileModified(String fileName, Commit other,
                                        Commit commit) {
         String hash = commit.getFilesMap().get(fileName);
         String hash2 = other.getFilesMap().get(fileName);
-        return hash.equals(hash2);
+        return !hash.equals(hash2);
     }
 
     /*private void processRemoveStage() {

@@ -7,6 +7,7 @@ import java.io.Serializable;
 import static gitlet.Main.BLOBS_FOLDER;
 import static gitlet.Utils.readContents;
 import static gitlet.Utils.readContentsAsString;
+import static gitlet.Utils.readObject;
 import static gitlet.Utils.sha1;
 import static gitlet.Utils.writeObject;
 
@@ -74,5 +75,11 @@ public class Blob implements Serializable {
                 e.printStackTrace();
             }
         }
+    }
+
+    /** Retrieves a Blob object with specified SHA-1 HASH. */
+    public static Blob importBlob(String hash) {
+        File blobFile = new File(BLOBS_FOLDER, hash);
+        return readObject(blobFile, Blob.class);
     }
 }

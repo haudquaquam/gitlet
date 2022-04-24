@@ -2,6 +2,8 @@ package gitlet;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -11,11 +13,14 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import static gitlet.Blob.getBlobHash;
+import static gitlet.Blob.importBlob;
 import static gitlet.Branch.deleteBranch;
 import static gitlet.Branch.fetchActiveBranchName;
 import static gitlet.Branch.findLatestCommonAncestor;
 import static gitlet.Branch.importBranches;
 import static gitlet.Branch.updateActiveBranch;
+import static gitlet.Commit.fileExistsInCommit;
+import static gitlet.Commit.fileModified;
 import static gitlet.Commit.findModifiedFiles;
 import static gitlet.Commit.findUntrackedFiles;
 import static gitlet.Commit.getDifferingFiles;
@@ -524,6 +529,7 @@ public class Main {
 
     /** Handles merging of the current branch with GIVENBRANCH. */
     public static void merge(String givenBranch) {
+        boolean mergeConflict = false;
         Branch branches = importBranches();
         var branchMap = branches.getMap();
         var currentBranch = fetchActiveBranchName();
@@ -553,6 +559,8 @@ public class Main {
             message("You have uncommitted changes.");
             System.exit(0);
         }
+        clearRemoveStage(); // should be redundant
+        clearAddStage(); //    should be redundant
         Commit givenCommit = importCommit(givenCommitHash);
         Commit currentCommit = importCommit(currentCommitHash);
         Commit splitPointCommit = importCommit(latestCommonAncestor);
@@ -577,6 +585,74 @@ public class Main {
             // do nothing?
         }
 
+        for (Map.Entry<String, String> entry
+                : givenCommit.getFilesMap().entrySet()) {
+            String givenFileName = entry.getKey();
+            String givenFileHash = entry.getValue();
+            if (fileExistsInCommit(givenFileName, splitPointCommit)
+                    && !fileExistsInCommit(givenFileName, currentCommit)) {
+                // FILE EXISTS IN GIVEN COMMIT AND SPLITPOINT, BUT NOT IN
+                // CURRENTCOMMIT
+                if (fileModified(givenFileName, splitPointCommit,
+                        givenCommit)) {
+                    // FILE HAS BEEN MODIFIED IN GIVENCOMMIT -> need to
+                    // checkout file, then stage it
+                    checkoutFile(givenCommit, givenFileName);
+                    addBlob(importBlob(givenFileHash));
+                    // import the current Blob, then stage it to be added
+                } else {
+                    // FILE IS THE SAME BETWEEN SPLITPOINT AND GIVENCOMMIT ->
+                    // do nothing!
+                }
+            } else if (fileExistsInCommit(givenFileName, splitPointCommit)
+                    && fileExistsInCommit(givenFileName, currentCommit)) {
+                // FILE EXISTS IN ALL SPLITPOINT, GIVENCOMMIT, AND
+                // CURRENTCOMMIT
+                if (fileModified(givenFileName, givenCommit, currentCommit)) {
+                    // IF FILE IS DIFFERENT BETWEEN GIVEN AND CURRENT ->
+                    // MERGE CONFLICT
+                    handleMergeConflict(givenCommit, currentCommit,
+                            givenFileName);
+                    mergeConflict = true;
+                } else {
+                    // FILES ARE MODIFIED IN THE SAME WAY IN GIVENCOMMIT AND
+                    // CURRENTCOMMIT, SO DO NOTHING!
+                }
+            } else if (!fileExistsInCommit(givenFileName, splitPointCommit)
+                    && !fileExistsInCommit(givenFileName, currentCommit)) {
+                // FILE ONLY EXISTS IN GIVENCOMMIT -> CHECK OUT AND STAGE
+                checkoutFile(givenCommit, givenFileName);
+                addBlob(importBlob(givenFileHash));
+
+            } else if (!fileExistsInCommit(givenFileName, splitPointCommit)
+                    && fileExistsInCommit(givenFileName, currentCommit)) {
+                // FILE EXISTS IN BOTH GIVENCOMMIT AND CURRENTCOMMIT, BUT NOT
+                // IN SPLITPOINT -> CHECK TO SEE IF THEY ARE MODIFIED IN THE
+                // SAME WAY. OTHERWISE WE HAVE MERGE CONFLICT.
+                if (fileModified(givenFileName, givenCommit, currentCommit)) {
+                    // IF FILE IS DIFFERENT BETWEEN GIVEN AND CURRENT ->
+                    // MERGE CONFLICT
+                    handleMergeConflict(givenCommit, currentCommit,
+                            givenFileName);
+                    mergeConflict = true;
+                } else {
+                    // FILES ARE MODIFIED IN THE SAME WAY IN GIVENCOMMIT AND
+                    // CURRENTCOMMIT, SO DO NOTHING!
+                }
+            }
+        }
+
+        for (Map.Entry<String, String> entry
+                : currentCommit.getFilesMap().entrySet()) {
+            String currentFileName = entry.getKey();
+            String currentFileHash = entry.getValue();
+            if (fileExistsInCommit(currentFileName, splitPointCommit)
+                    && !fileExistsInCommit(currentFileName, givenCommit)) {
+                File toBeRemoved = new File(CWD, currentFileName);
+                stageForRemoval(toBeRemoved);
+            }
+        }
+
         /* FAILURE CASE: if stages contain adds/removes, error with:
          "You have uncommitted changes."
 
@@ -594,9 +670,9 @@ public class Main {
         /* any files that have been modified in the GIVENBRANCH since the split
          point,
          but not modified in the CURRENTBRANCH since the split point should
-         be changed
-         to their versions in the GIVENBRANCH. (checkout from GIVENBRANCH's
-         HEAD COMMIT) then, stage all of those files in CURRENTBRANCH
+         be changed to their versions in the GIVENBRANCH. (checkout from
+         GIVENBRANCH's HEAD COMMIT) then, stage all of those files in
+         CURRENTBRANCH
 
 
          any files modified in CURRENTBRANCH, but not in GIVENBRANCH should stay
@@ -653,12 +729,40 @@ public class Main {
          if there was a conflict , also PRINT the message:
          "Encountered a merge conflict."*/
 
+        String mergeMsg =
+                "Merged " + givenBranch + " into " + currentBranch + ".";
+
+        Commit newCommit = new Commit(mergeMsg, new Date(),
+                fetchHeadCommitHash());
+        updateActiveBranchWithLatestCommit(processCommit(newCommit));
+
 
     }
 
-    /** Handles Merge Conflict between FIRST and OTHER. */
-    public static void handleMergeConflict(Commit first, Commit other) {
+    /** Handles Merge Conflict between FIRST and OTHER for the file with name
+     *  FILENAME. This file must exist in both Commits. */
+    public static void handleMergeConflict(Commit first, Commit other,
+                                           String fileName) {
 
+        Blob firstBlob = importBlob(first.getFilesMap().get(fileName));
+        Blob otherBlob = importBlob(other.getFilesMap().get(fileName));
+
+        String mergeContents = "<<<<<<< HEAD";
+        mergeContents += new String(firstBlob.getFileContents(),
+                StandardCharsets.UTF_8);
+        mergeContents += "=======";
+        mergeContents += new String(otherBlob.getFileContents(),
+                StandardCharsets.UTF_8);
+        mergeContents += ">>>>>>>";
+
+        File currentFile = new File(CWD, fileName);
+        try {
+            PrintWriter out = new PrintWriter(currentFile);
+            out.println(mergeContents);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        addBlob(new Blob(currentFile));
     }
 
     /** Returns a TreeMap of all files in the Current Working Directory. Maps
