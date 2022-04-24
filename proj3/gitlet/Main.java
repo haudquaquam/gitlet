@@ -736,6 +736,9 @@ public class Main {
                 currentCommitHash, givenCommitHash);
         updateActiveBranchWithLatestCommit(processCommit(newCommit));
 
+        if (mergeConflict) {
+            message("Encountered a merge conflict.");
+        }
 
     }
 
