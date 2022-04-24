@@ -655,7 +655,7 @@ public class Main {
                     && !fileExistsInCommit(currentFileName, givenCommit)) {
                 // FILE EXISTS IN BOTH SPLITPOINT AND CURRENT, BUT NOT IN
                 // REMOVED
-                if (!fileModified(currentFileName, currentCommit,
+                if (fileModified(currentFileName, currentCommit,
                         splitPointCommit)) {
                     // FILE MODIFIED FROM SPLITPOINT -> merge conflict
                     mergeConflict = true;
