@@ -559,10 +559,14 @@ public class Main {
 
         // use getDifferingFiles to handle logic
 
-        if (!getDifferingFiles(givenCommit, splitPointCommit).isEmpty()) {
-            // there have been changes since splitpoint in given commit
-            if (!getDifferingFiles(currentCommit, splitPointCommit).isEmpty()) {
+        if (!givenCommit.equals(splitPointCommit)) {
+            // there have been changes since splitpoint in given commit. they
+            // are not the same commit.
+            if (!currentCommit.equals(splitPointCommit)
+                    && !currentCommit.equals(givenCommit)) {
                 // there have been changes since splitpoint in current commit
+                // in addition to changes in given commit. and ensure that
+                // current commit is not equal to given commit.
                 // merge conflict
             } else {
                 checkoutBranch(givenBranch);
@@ -581,9 +585,6 @@ public class Main {
 
          FAILURE CASE: attempting to merge branch with itself, error:
          "Cannot merge a branch with itself." */
-
-
-
 
          /* FAILURE CASE: untracked file in current commit that would be
          overwritten or deleted by merge, error:
@@ -652,6 +653,11 @@ public class Main {
          if there was a conflict , also PRINT the message:
          "Encountered a merge conflict."*/
 
+
+    }
+
+    /** Handles Merge Conflict between FIRST and OTHER. */
+    public static void handleMergeConflict(Commit first, Commit other) {
 
     }
 

@@ -312,11 +312,13 @@ public class Commit implements Serializable {
         return processedMap;
     }
 
+    /** Returns whether this Commit is equal to OTHER. */
     public boolean equals(Commit other) {
         return Objects.equals(this.getHash(), other.getHash());
     }
 
-    /** Returns Map of the filenames to their hashes in this commit. */
+    /** Returns Map of the filenames to their hashes for files that are
+     * different between FIRST and OTHER. */
     public static Map<String, String> getDifferingFiles(Commit first,
                                                         Commit other) {
         Map<String, String> differingFiles = new TreeMap<>();
@@ -338,7 +340,22 @@ public class Commit implements Serializable {
         map overlaps, remove key/val pair from othermap. then the remaining
         in othermap is not in first map. add all to differing. */
         differingFiles.putAll(otherMap);
+        return differingFiles;
+    }
 
+    /** Returns whether FILENAME exists in COMMIT. */
+    public static boolean fileExistsInCommit(String fileName, Commit commit) {
+        return commit._commitMap.containsKey(fileName);
+    }
+
+    /** Returns whether the file, FILENAME, is unchanged between two
+     * Commits, OTHER and COMMIT. Make sure that the file exists in both
+     * Commits first. */
+    public static boolean fileModified(String fileName, Commit other,
+                                       Commit commit) {
+        String hash = commit.getFilesMap().get(fileName);
+        String hash2 = other.getFilesMap().get(fileName);
+        return hash.equals(hash2);
     }
 
     /*private void processRemoveStage() {
