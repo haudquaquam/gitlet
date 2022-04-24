@@ -2,7 +2,6 @@ package gitlet;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -13,6 +12,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import static gitlet.Blob.getBlobHash;
+import static gitlet.Blob.getEmptyBlob;
 import static gitlet.Blob.importBlob;
 import static gitlet.Branch.deleteBranch;
 import static gitlet.Branch.fetchActiveBranchName;
@@ -42,7 +42,7 @@ import static gitlet.Utils.writeObject;
 public class Main {
 
     /** Current Working Directory. */
-    public static final File CWD = new File(".");
+    public static final File CWD = new File(System.getProperty("user.dir"));
 
     /** Main metadata folder. */
     public static final File GITLET_FOLDER =
@@ -611,7 +611,7 @@ public class Main {
                 if (fileModified(givenFileName, givenCommit, currentCommit)) {
                     // IF FILE IS DIFFERENT BETWEEN GIVEN AND CURRENT ->
                     // MERGE CONFLICT
-                    handleMergeConflict(givenCommit, currentCommit,
+                    handleMergeConflict(currentCommit, givenCommit,
                             givenFileName);
                     mergeConflict = true;
                 } else {
@@ -632,7 +632,7 @@ public class Main {
                 if (fileModified(givenFileName, givenCommit, currentCommit)) {
                     // IF FILE IS DIFFERENT BETWEEN GIVEN AND CURRENT ->
                     // MERGE CONFLICT
-                    handleMergeConflict(givenCommit, currentCommit,
+                    handleMergeConflict(currentCommit, givenCommit,
                             givenFileName);
                     mergeConflict = true;
                 } else {
@@ -729,8 +729,8 @@ public class Main {
          if there was a conflict , also PRINT the message:
          "Encountered a merge conflict."*/
 
-        String mergeMsg =
-                "Merged " + givenBranch + " into " + currentBranch + ".";
+        String mergeMsg = "Merged " + givenBranch + " into " + currentBranch
+                + ".";
 
         Commit newCommit = new Commit(mergeMsg, new Date(),
                 currentCommitHash, givenCommitHash);
@@ -747,24 +747,27 @@ public class Main {
     public static void handleMergeConflict(Commit first, Commit other,
                                            String fileName) {
 
-        Blob firstBlob = importBlob(first.getFilesMap().get(fileName));
-        Blob otherBlob = importBlob(other.getFilesMap().get(fileName));
-
-        String mergeContents = "<<<<<<< HEAD"
-                + new String(firstBlob.getFileContents(),
-                StandardCharsets.UTF_8) + "======="
-                + new String(otherBlob.getFileContents(),
-                StandardCharsets.UTF_8) + ">>>>>>>";
-
         File currentFile = new File(CWD, fileName);
-        try {
-            currentFile.delete();
-            currentFile.createNewFile();
-            PrintWriter out = new PrintWriter(currentFile);
-            out.println(mergeContents);
-        } catch (IOException e) {
-            e.printStackTrace();
+
+        Blob firstBlob;
+        Blob otherBlob;
+        if (first.getFilesMap().containsKey(fileName)) {
+            firstBlob = importBlob(first.getFilesMap().get(fileName));
+        } else {
+            firstBlob = getEmptyBlob();
         }
+        if (other.getFilesMap().containsKey(fileName)) {
+            otherBlob = importBlob(other.getFilesMap().get(fileName));
+        } else {
+            otherBlob = getEmptyBlob();
+        }
+
+        String mergeContents = "<<<<<<< HEAD\n"
+                + new String(firstBlob.getFileContents(),
+                StandardCharsets.UTF_8) + "=======\n"
+                + new String(otherBlob.getFileContents(),
+                StandardCharsets.UTF_8) + ">>>>>>>\n";
+        writeContents(currentFile, mergeContents);
         stageForAddition(currentFile);
     }
 

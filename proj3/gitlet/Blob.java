@@ -42,6 +42,12 @@ public class Blob implements Serializable {
         }
     }
 
+    /** Returns a Blob that has empty contents for the purposes of Merge
+     * Conflict handling. */
+    public static Blob getEmptyBlob() {
+        return new Blob(new File("emptyarbitraryblobfile"));
+    }
+
     /** Returns the SHA-1 hash of FILE. */
     public static String getBlobHash(File file) {
         return sha1("blob" + readContentsAsString(file));
