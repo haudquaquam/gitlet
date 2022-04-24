@@ -451,7 +451,6 @@ public class Main {
             desiredCommit = importCommit(branchesMap.get(branchName));
         }
         Map<String, String> cwdFiles = getCWDFiles();
-
          /*take all files in DESIREDCOMMIT and put them in CWD, overwriting
          the versions of the files that are already there if they exist.
          but first check that all filenames in DESIREDCOMMIT that exist

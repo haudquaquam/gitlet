@@ -25,6 +25,7 @@ import static gitlet.Utils.UID_LENGTH;
 import static gitlet.Utils.message;
 import static gitlet.Utils.plainFilenamesIn;
 import static gitlet.Utils.readObject;
+import static gitlet.Utils.serialize;
 import static gitlet.Utils.sha1;
 import static gitlet.Utils.writeObject;
 
@@ -58,6 +59,9 @@ public class Commit implements Serializable {
     /** Magic String that is mapped to the second parent's SHA-1 hash. */
     private final String _parent2Str = "parent2";
 
+    /** This Commit's SHA-1 hash. */
+    private final String _hash;
+
     /** ArrayList of all magic words so that we can easily check keys in the
      * commitMap against these. */
     private final List<String> _defaultKeys =
@@ -78,6 +82,16 @@ public class Commit implements Serializable {
         _commitMap.put(_timestampStr, formatDate(timestamp));
         _commitMap.put(_parentStr, parentHash);
         _commitMap.put(_parent2Str, parent2Hash);
+
+        String hashID = "commit";
+        for (Map.Entry<String, String> entry : _commitMap.entrySet()) {
+            hashID = hashID + entry.getValue();
+        }
+
+        var byteAdd = serialize(_addStage);
+        var byteRem = serialize(_removeStage);
+        _hash = sha1(hashID, byteAdd, byteRem);
+
     }
 
     /** Constructs a COMMIT object when only given MESSAGE, TIMESTAMP, and
@@ -88,11 +102,7 @@ public class Commit implements Serializable {
 
     /** Returns the SHA-1 hash of the given commit. */
     public String getHash() {
-        String hashID = "commit";
-        for (Map.Entry<String, String> entry : _commitMap.entrySet()) {
-            hashID = hashID + entry.getValue();
-        }
-        return sha1(hashID);
+        return _hash;
     }
 
     /** Returns a Commit, pulled from the inputted COMMITHASH, which is the
@@ -109,6 +119,8 @@ public class Commit implements Serializable {
         }
         File commitFile = new File(COMMITS_FOLDER, commitHash);
         if (!commitFile.exists()) {
+            System.out.println(commitHash);
+            System.out.println(importBranches().getMap().get("master"));
             message("No commit with that id exists.");
             System.exit(0);
         }
