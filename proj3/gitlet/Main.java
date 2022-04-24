@@ -158,9 +158,9 @@ public class Main {
                 message("Incorrect operands.");
                 System.exit(0);
             }
-            if (args[1].equals("--")) {
+            if (args.length == 3 && args[1].equals("==")) {
                 checkoutFile(fetchHeadCommit(), args[2]);
-            } else if (args[2].equals("--")) {
+            } else if (args.length == 4 && args[2].equals("--")) {
                 checkoutFile(importCommit(args[1]), args[3]);
             } else if (args.length == 2) {
                 checkoutBranch(args[1]);

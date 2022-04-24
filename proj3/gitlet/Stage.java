@@ -32,17 +32,15 @@ public class Stage implements Serializable {
     /** Given BLOB, add this Blob to the Add Stage, or remove it from the
      * Remove Stage if it is present there. */
     public static void addBlob(Blob blob) {
-        if (!fetchHeadCommit().contains(blob)) {
-            if (fetchRemoveStage().getStage().containsKey(blob.getFileName())) {
-                Stage updatedRemoveStage = fetchRemoveStage();
-                updatedRemoveStage.getStage().remove(blob.getFileName());
-                writeObject(REMOVE_STAGE_FILE, updatedRemoveStage);
-            } else {
-                Stage updatedStage = fetchAddStage();
-                updatedStage.getStage().put(blob.getFileName(), blob.getHash());
-                writeObject(ADD_STAGE_FILE, updatedStage);
-                exportBlob(blob);
-            }
+        if (fetchRemoveStage().getStage().containsKey(blob.getFileName())) {
+            Stage updatedRemoveStage = fetchRemoveStage();
+            updatedRemoveStage.getStage().remove(blob.getFileName());
+            writeObject(REMOVE_STAGE_FILE, updatedRemoveStage);
+        } else if (!fetchHeadCommit().contains(blob)) {
+            Stage updatedStage = fetchAddStage();
+            updatedStage.getStage().put(blob.getFileName(), blob.getHash());
+            writeObject(ADD_STAGE_FILE, updatedStage);
+            exportBlob(blob);
         }
     }
 
