@@ -526,6 +526,7 @@ public class Main {
         Branch branches = importBranches();
         var branchMap = branches.getMap();
         var currentBranch = fetchActiveBranchName();
+        /* Handle some failure cases. */
         if (!branchMap.containsKey(givenBranch)) {
             message("A branch with that name does not exist.");
             System.exit(0);
@@ -533,18 +534,29 @@ public class Main {
             message("Cannot merge a branch with itself.");
             System.exit(0);
         }
+
         String givenCommitHash = branchMap.get(givenBranch);
         String currentCommitHash = branchMap.get(currentBranch);
         String latestCommonAncestor = findLatestCommonAncestor(givenBranch,
                 currentBranch);
+
         if (latestCommonAncestor.equals(givenBranch)) {
-            System.out.println("Given branch is an ancestor "
-                    + "of the current branch.");
-            return;
+            message("Given branch is an ancestor of the current branch.");
+            System.exit(0);
         } else if (latestCommonAncestor.equals(currentBranch)) {
             checkoutBranch(givenBranch);
-            System.out.println("Current branch fast-forwarded.");
+            message("Current branch fast-forwarded.");
+            System.exit(0);
+        } else if (!(fetchAddStage().getStage().isEmpty()
+                && fetchRemoveStage().getStage().isEmpty())) {
+            message("You have uncommitted changes.");
+            System.exit(0);
         }
+        Commit givenCommit = importCommit(givenCommitHash);
+        Commit currentCommit = importCommit(currentCommitHash);
+        Commit splitPointCommit = importCommit(latestCommonAncestor);
+
+
         /* FAILURE CASE: if stages contain adds/removes, error with:
          "You have uncommitted changes."
 
@@ -552,8 +564,9 @@ public class Main {
          "A branch with that name does not exist."
 
          FAILURE CASE: attempting to merge branch with itself, error:
-         "Cannot merge a branch with itself."
+         "Cannot merge a branch with itself." */
 
+         /*
          FAILURE CASE: untracked file in current commit that would be
          overwritten or deleted by merge, error:
          "There is an untracked file in the way; delete it, or
