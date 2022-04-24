@@ -178,8 +178,19 @@ public class Commit implements Serializable {
     /** Returns whether this Commit has a parent Commit. Equivalent to
      * checking whether this Commit is the initial Commit, as that should be
      * the only Commit without a parent. */
-    public boolean hasParent() {
-        return (_commitMap.get(_parentStr) != null);
+    public boolean hasAnyParent() {
+        return (_commitMap.get(_parentStr) != null
+                || _commitMap.get(_parent2Str) != null);
+    }
+
+    /** Returns whether this commit has first parent. */
+    public boolean hasParent1() {
+        return _commitMap.get(_parentStr) != null;
+    }
+
+    /** Returns whether this commit has second parent. */
+    public boolean hasParent2() {
+        return _commitMap.get(_parent2Str) != null;
     }
 
     /** Returns the timestamp of the current Commit. */
@@ -200,6 +211,16 @@ public class Commit implements Serializable {
     /** Returns the first parent Commit of the current Commit. */
     public Commit getParentCommit() {
         return importCommit(getParentHash());
+    }
+
+    /** Returns the second parent's hash in the current Commit. */
+    public String getParent2Hash() {
+        return _commitMap.get(_parent2Str);
+    }
+
+    /** Returns the second parent Commit of the current Commit. */
+    public Commit getParent2Commit() {
+        return importCommit(getParent2Hash());
     }
 
     /** Returns the SHA-1 hash of the file FILENAME as it exists in COMMIT. */

@@ -317,7 +317,7 @@ public class Main {
         Commit currentCommit = fetchHeadCommit();
         while (currentCommit != null) {
             printCommit(currentCommit);
-            if (!currentCommit.hasParent()) {
+            if (!currentCommit.hasAnyParent()) {
                 break;
             }
             currentCommit = currentCommit.getParentCommit();

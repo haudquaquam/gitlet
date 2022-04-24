@@ -116,12 +116,12 @@ public class Branch implements Serializable {
         Commit commitFirst = Commit.importCommit(branchMap.get(branchFirst));
         Commit commitOther = Commit.importCommit(branchMap.get(branchOther));
         List<String> firstAncestors = new ArrayList<>();
-        var current = commitFirst;
-        while (current.hasParent()) {
-            firstAncestors.add(current.getHash());
-            current = Commit.importCommit(current.getParentHash());
-        }
-        current = commitOther;
+        List<String> otherAncestors = new ArrayList<>();
+
+        getAncestors(commitFirst, firstAncestors);
+        getAncestors(commitOther, otherAncestors);
+
+        /*current = commitOther;
         while (current.hasParent()) {
             if (firstAncestors.contains(current.getHash())) {
                 latestCommonAncestor = current.getHash();
@@ -129,8 +129,27 @@ public class Branch implements Serializable {
             } else {
                 current = Commit.importCommit(current.getParentHash());
             }
-        }
+        }*/
         return latestCommonAncestor;
+    }
+
+    /** Mutates a list to contain all of COMMIT's ancestors. */
+    private static void getAncestors(Commit commit,
+                                      List<String> allAncestors) {
+        if (commit.getParentHash() != null) {
+            getAncestors(commit.getParentCommit(), allAncestors);
+        }
+        if (commit.getParent2Hash() != null) {
+            getAncestors(commit.getParent2Commit(), allAncestors);
+        }
+        allAncestors.add(commit.getHash());
+    }
+
+    /** Find and return shortest path between COMMIT and ANCESTOR. */
+    private static int getShortestPath(Commit commit, Commit ancestor,
+                                       int steps) {
+        if ()
+        return Math.min()
     }
 
     /** Returns whether Commit POTENTIALANCESTOR is an ancestor of Commit,
