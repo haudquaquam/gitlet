@@ -54,7 +54,7 @@ public class Stage implements Serializable {
         if (fetchAddStage().getStage().containsKey(blob.getFileName())) {
             updatedAddStage.getStage().remove(blob.getFileName());
             writeObject(ADD_STAGE_FILE, updatedAddStage);
-        } else if (fetchHeadCommit().getStrippedMap().
+        } else if (fetchHeadCommit().getFilesMap().
                 containsKey(blob.getFileName())) {
             updatedRemoveStage.getStage().put(blob.getFileName(),
                    blob.getHash());

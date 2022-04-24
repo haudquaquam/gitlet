@@ -248,7 +248,7 @@ public class Commit implements Serializable {
      * a filename to its status, either "(modified)" or "(deleted)". */
     public static Map<String, String> findModifiedFiles(Commit commit) {
         Map<String, String> trackedFiles =
-                new TreeMap<>(commit.getStrippedMap());
+                new TreeMap<>(commit.getFilesMap());
         Map<String, String> addStageFiles = fetchAddStage().getStage();
         Map<String, String> removeStageFiles = fetchRemoveStage().getStage();
         Map<String, String> cwdFiles = getCWDFiles();
@@ -285,7 +285,7 @@ public class Commit implements Serializable {
      * Directory, but do not exist in the given COMMIT or any of the Stages. */
     public static List<String> findUntrackedFiles(Commit commit) {
         Map<String, String> trackedFiles =
-                new TreeMap<>(commit.getStrippedMap());
+                new TreeMap<>(commit.getFilesMap());
         Map<String, String> addStageFiles = fetchAddStage().getStage();
         Map<String, String> removeStageFiles = fetchRemoveStage().getStage();
         List<String> untrackedFiles = new ArrayList<>();
@@ -302,7 +302,7 @@ public class Commit implements Serializable {
 
     /** Returns a TreeMap of the current Commit's commitMap, minus any of the
      magic keys. */
-    public Map<String, String> getStrippedMap() {
+    public Map<String, String> getFilesMap() {
         Map<String, String> processedMap = new TreeMap<>();
         for (Map.Entry<String, String> entry : _commitMap.entrySet()) {
             if (!_defaultKeys.contains(entry.getKey())) {
@@ -314,6 +314,31 @@ public class Commit implements Serializable {
 
     public boolean equals(Commit other) {
         return Objects.equals(this.getHash(), other.getHash());
+    }
+
+    /** Returns Map of the filenames to their hashes in this commit. */
+    public static Map<String, String> getDifferingFiles(Commit first,
+                                                        Commit other) {
+        Map<String, String> differingFiles = new TreeMap<>();
+        var firstMap = first.getFilesMap();
+        var otherMap = other.getFilesMap();
+        for (Map.Entry<String, String> entry : firstMap.entrySet()) {
+            var key = entry.getKey();
+            var value = entry.getValue();
+            if (otherMap.containsKey(key)) {
+                if (!otherMap.get(key).equals(value)) {
+                    differingFiles.put(key, value);
+                }
+                otherMap.remove(key);
+            } else {
+                differingFiles.put(key, value);
+            }
+        }
+        /* Algo: Go through all first map, check against othermap. if other
+        map overlaps, remove key/val pair from othermap. then the remaining
+        in othermap is not in first map. add all to differing. */
+        differingFiles.putAll(otherMap);
+
     }
 
     /*private void processRemoveStage() {

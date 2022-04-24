@@ -18,6 +18,7 @@ import static gitlet.Branch.importBranches;
 import static gitlet.Branch.updateActiveBranch;
 import static gitlet.Commit.findModifiedFiles;
 import static gitlet.Commit.findUntrackedFiles;
+import static gitlet.Commit.getDifferingFiles;
 import static gitlet.Commit.getFileHashFromName;
 import static gitlet.Commit.importCommit;
 import static gitlet.Commit.updateActiveBranchWithLatestCommit;
@@ -459,8 +460,8 @@ public class Main {
          but first check that all filenames in DESIREDCOMMIT that exist
          in CWD are tracked and not modified if tracked*/
         for (Map.Entry<String, String> en : cwdFiles.entrySet()) {
-            if (desiredCommit.getStrippedMap().containsKey(en.getKey())) {
-                if (!oldCommit.getStrippedMap().containsValue(en.getValue())) {
+            if (desiredCommit.getFilesMap().containsKey(en.getKey())) {
+                if (!oldCommit.getFilesMap().containsValue(en.getValue())) {
                     message("There is an untracked file in the way; "
                             + "delete it, or add and commit it first.");
                     System.exit(0);
@@ -470,7 +471,7 @@ public class Main {
                 restrictedDelete(toBeDeleted);
             }
         }
-        for (String fileName : oldCommit.getStrippedMap().keySet()) {
+        for (String fileName : oldCommit.getFilesMap().keySet()) {
             /* any files that are tracked in the current branch but are not
              present in the checked-out branch are deleted. deletes all
              files in the current branch that do not exist in desired commit*/
@@ -479,7 +480,7 @@ public class Main {
                 restrictedDelete(toBeDeleted);
             }
         }
-        for (String fileName : desiredCommit.getStrippedMap().keySet()) {
+        for (String fileName : desiredCommit.getFilesMap().keySet()) {
             checkoutFile(desiredCommit, fileName);
         }
         clearRemoveStage();
@@ -492,8 +493,8 @@ public class Main {
     private static void reset(String commitHash) {
         Commit desiredCommit = importCommit(commitHash);
         Commit oldCommit = importCommit(fetchHeadCommitHash());
-        var oldFileNames = oldCommit.getStrippedMap().keySet();
-        var desiredFileNames = desiredCommit.getStrippedMap().keySet();
+        var oldFileNames = oldCommit.getFilesMap().keySet();
+        var desiredFileNames = desiredCommit.getFilesMap().keySet();
 
         List<String> cwdFileName = new ArrayList<>(plainFilenamesIn(CWD));
         for (String fileName : desiredFileNames) {
@@ -556,6 +557,21 @@ public class Main {
         Commit currentCommit = importCommit(currentCommitHash);
         Commit splitPointCommit = importCommit(latestCommonAncestor);
 
+        // use getDifferingFiles to handle logic
+
+        if (!getDifferingFiles(givenCommit, splitPointCommit).isEmpty()) {
+            // there have been changes since splitpoint in given commit
+            if (!getDifferingFiles(currentCommit, splitPointCommit).isEmpty()) {
+                // there have been changes since splitpoint in current commit
+                // merge conflict
+            } else {
+                checkoutBranch(givenBranch);
+            }
+        } else if (!getDifferingFiles(currentCommit,
+                splitPointCommit).isEmpty()) {
+            // no changes in givencommit, but yes changes in currentcommit
+            // do nothing?
+        }
 
         /* FAILURE CASE: if stages contain adds/removes, error with:
          "You have uncommitted changes."
@@ -566,13 +582,15 @@ public class Main {
          FAILURE CASE: attempting to merge branch with itself, error:
          "Cannot merge a branch with itself." */
 
-         /*
-         FAILURE CASE: untracked file in current commit that would be
+
+
+
+         /* FAILURE CASE: untracked file in current commit that would be
          overwritten or deleted by merge, error:
          "There is an untracked file in the way; delete it, or
-         add and commit it first."
+         add and commit it first." */
 
-         any files that have been modified in the GIVENBRANCH since the split
+        /* any files that have been modified in the GIVENBRANCH since the split
          point,
          but not modified in the CURRENTBRANCH since the split point should
          be changed

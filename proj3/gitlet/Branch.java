@@ -105,7 +105,6 @@ public class Branch implements Serializable {
     public static String findLatestCommonAncestor(String branchFirst,
                                                   String branchOther) {
         Branch branches = importBranches();
-        String latestCommonAncestor = null;
         var branchMap = branches.getMap();
         if (!(branchMap.containsKey(branchFirst)
                 && branchMap.containsKey(branchOther))) {
@@ -140,8 +139,6 @@ public class Branch implements Serializable {
                 shortestLCA = commonAncestorHash;
             }
         }
-
-
         /*current = commitOther;
         while (current.hasParent()) {
             if (firstAncestors.contains(current.getHash())) {
