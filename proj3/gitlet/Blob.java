@@ -31,9 +31,14 @@ public class Blob implements Serializable {
     /** Takes in a file, FILE, and sets instance variables. */
     public Blob(File file) {
         _file = file;
-        _hash = getBlobHash(file);
         _fileName = _file.getName();
-        _fileContents = readContents(file);
+        if (file.exists()) {
+            _hash = getBlobHash(file);
+            _fileContents = readContents(file);
+        } else {
+            _hash = null;
+            _fileContents = null;
+        }
     }
 
     /** Returns the SHA-1 hash of FILE. */

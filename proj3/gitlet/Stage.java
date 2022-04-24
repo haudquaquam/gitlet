@@ -49,11 +49,13 @@ public class Stage implements Serializable {
      * the Current Working Directory. */
     public static void removeBlob(Blob blob) {
         Stage updatedAddStage = fetchAddStage();
+
         Stage updatedRemoveStage = fetchRemoveStage();
         if (fetchAddStage().getStage().containsKey(blob.getFileName())) {
             updatedAddStage.getStage().remove(blob.getFileName());
             writeObject(ADD_STAGE_FILE, updatedAddStage);
-        } else if (fetchHeadCommit().contains(blob)) {
+        } else if (fetchHeadCommit().getStrippedMap().
+                containsKey(blob.getFileName())) {
             updatedRemoveStage.getStage().put(blob.getFileName(),
                    blob.getHash());
             restrictedDelete(blob.getFileName());

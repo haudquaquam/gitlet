@@ -120,10 +120,6 @@ public class Main {
                 System.exit(0);
             }
             File removeFile = new File(CWD, args[1]);
-            if (!removeFile.exists()) {
-                message("File does not exist.");
-                System.exit(0);
-            }
             stageForRemoval(removeFile);
             break;
         case "log":
