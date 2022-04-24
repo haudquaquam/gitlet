@@ -11,7 +11,6 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import static gitlet.Blob.getBlobHash;
-import static gitlet.Branch.deleteBranch;
 import static gitlet.Branch.fetchActiveBranchName;
 import static gitlet.Branch.findLatestCommonAncestor;
 import static gitlet.Branch.importBranches;
@@ -182,7 +181,7 @@ public class Main {
                 message("Incorrect operands.");
                 System.exit(0);
             }
-            deleteBranch(args[1]);
+            //deleteBranch(args[1]);
             break;
         case "reset":
             if (args.length != 2) {
@@ -258,6 +257,7 @@ public class Main {
      * the hash, COMMITHASH. */
     public static void updateBranch(String branchName, String commitHash) {
         Branch newBranch = new Branch(branchName, commitHash);
+        newBranch.exportBranch();
     }
 
     /** Sets NEWCOMMIT to be the current head commit. */
@@ -489,7 +489,7 @@ public class Main {
 
     /** Resets to the Commit specified by COMMITHASH. */
     private static void reset(String commitHash) {
-        Commit desiredCommit = importCommit(commitHash);
+        /*Commit desiredCommit = importCommit(commitHash);
         Commit oldCommit = importCommit(fetchHeadCommitHash());
         var oldFileNames = oldCommit.getStrippedMap().keySet();
         var desiredFileNames =
@@ -517,6 +517,14 @@ public class Main {
             checkoutFile(desiredCommit, fileName);
         }
         updateBranch(fetchActiveBranchName(), commitHash);
+        clearAddStage();
+        clearRemoveStage();*/
+        Commit desiredCommit = importCommit(commitHash);
+        for (String fileName : desiredCommit.getStrippedMap().keySet()) {
+            checkoutFile(desiredCommit, fileName);
+        }
+        updateActiveBranchWithLatestCommit(commitHash);
+        updateHeadCommit(desiredCommit);
         clearAddStage();
         clearRemoveStage();
     }
