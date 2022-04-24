@@ -82,16 +82,13 @@ public class Commit implements Serializable {
         _commitMap.put(_timestampStr, formatDate(timestamp));
         _commitMap.put(_parentStr, parentHash);
         _commitMap.put(_parent2Str, parent2Hash);
-
         String hashID = "commit";
         for (Map.Entry<String, String> entry : _commitMap.entrySet()) {
             hashID = hashID + entry.getValue();
         }
-
         var byteAdd = serialize(_addStage);
         var byteRem = serialize(_removeStage);
         _hash = sha1(hashID, byteAdd, byteRem);
-
     }
 
     /** Constructs a COMMIT object when only given MESSAGE, TIMESTAMP, and
