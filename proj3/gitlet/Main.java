@@ -148,6 +148,10 @@ public class Main {
                 message("Incorrect operands.");
                 System.exit(0);
             }
+            if (!GITLET_FOLDER.exists()) {
+                message("Not in an initialized Gitlet directory.");
+                System.exit(0);
+            }
             displayStatus();
             break;
         case "checkout":
