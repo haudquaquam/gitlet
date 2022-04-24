@@ -17,7 +17,6 @@ import static gitlet.Main.CWD;
 import static gitlet.Main.clearAddStage;
 import static gitlet.Main.clearRemoveStage;
 import static gitlet.Main.fetchAddStage;
-import static gitlet.Main.fetchHeadCommit;
 import static gitlet.Main.fetchRemoveStage;
 import static gitlet.Main.formatDate;
 import static gitlet.Main.getCWDFiles;
@@ -262,10 +261,10 @@ public class Commit implements Serializable {
     }
 
     /** Returns an ArrayList of files that exist in the Current Working
-     * Directory, but do not exist in the Head Commit or any of the Stages. */
-    public static List<String> findUntrackedFiles() {
+     * Directory, but do not exist in the given COMMIT or any of the Stages. */
+    public static List<String> findUntrackedFiles(Commit commit) {
         Map<String, String> trackedFiles =
-                new TreeMap<>(fetchHeadCommit().getStrippedMap());
+                new TreeMap<>(commit.getStrippedMap());
         Map<String, String> addStageFiles = fetchAddStage().getStage();
         Map<String, String> removeStageFiles = fetchRemoveStage().getStage();
         List<String> untrackedFiles = new ArrayList<>();

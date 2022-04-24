@@ -174,7 +174,7 @@ public class Main {
                 message("Incorrect operands.");
                 System.exit(0);
             }
-            updateBranch(args[1], fetchHeadCommitHash());
+            createBranch(args[1], fetchHeadCommitHash());
             break;
         case "rm-branch":
             if (args.length != 2) {
@@ -222,7 +222,7 @@ public class Main {
                 String commitHash = processCommit("initial commit",
                         epoch, null);
 
-                updateBranch("master", commitHash);
+                createBranch("master", commitHash);
                 updateActiveBranch("master");
             } else {
                 message("A Gitlet version-control system already "
@@ -255,7 +255,7 @@ public class Main {
 
     /** Sets the branch named BRANCHNAME to point to the Commit with
      * the hash, COMMITHASH. */
-    public static void updateBranch(String branchName, String commitHash) {
+    public static void createBranch(String branchName, String commitHash) {
         Branch newBranch = new Branch(branchName, commitHash);
         newBranch.exportBranch();
     }
@@ -413,7 +413,7 @@ public class Main {
         System.out.println();
 
         System.out.println("=== Untracked Files ===");
-        for (String fileName : findUntrackedFiles()) {
+        for (String fileName : findUntrackedFiles(fetchHeadCommit())) {
             if (!modifiedNotStaged.containsKey(fileName)) {
                 System.out.println(fileName);
             }
@@ -489,13 +489,11 @@ public class Main {
 
     /** Resets to the Commit specified by COMMITHASH. */
     private static void reset(String commitHash) {
-        /*Commit desiredCommit = importCommit(commitHash);
+        Commit desiredCommit = importCommit(commitHash);
         Commit oldCommit = importCommit(fetchHeadCommitHash());
         var oldFileNames = oldCommit.getStrippedMap().keySet();
-        var desiredFileNames =
-                desiredCommit.getStrippedMap().keySet();
+        var desiredFileNames = desiredCommit.getStrippedMap().keySet();
 
-        Map<String, String> cwdFiles = getCWDFiles();
         List<String> cwdFileName = new ArrayList<>(plainFilenamesIn(CWD));
         for (String fileName : desiredFileNames) {
             if (cwdFileName.contains(fileName)) {
@@ -514,13 +512,6 @@ public class Main {
             }
         }
         for (String fileName : desiredFileNames) {
-            checkoutFile(desiredCommit, fileName);
-        }
-        updateBranch(fetchActiveBranchName(), commitHash);
-        clearAddStage();
-        clearRemoveStage();*/
-        Commit desiredCommit = importCommit(commitHash);
-        for (String fileName : desiredCommit.getStrippedMap().keySet()) {
             checkoutFile(desiredCommit, fileName);
         }
         updateActiveBranchWithLatestCommit(commitHash);
