@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import static gitlet.Blob.getBlobHash;
+import static gitlet.Branch.deleteBranch;
 import static gitlet.Branch.fetchActiveBranchName;
 import static gitlet.Branch.findLatestCommonAncestor;
 import static gitlet.Branch.importBranches;
@@ -181,7 +182,7 @@ public class Main {
                 message("Incorrect operands.");
                 System.exit(0);
             }
-            //deleteBranch(args[1]);
+            deleteBranch(args[1]);
             break;
         case "reset":
             if (args.length != 2) {
