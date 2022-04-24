@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import static gitlet.Commit.importCommit;
 import static gitlet.Main.ACTIVE_BRANCH_FILE;
 import static gitlet.Main.BRANCHES_FILE;
 import static gitlet.Utils.message;
@@ -15,6 +16,7 @@ import static gitlet.Utils.readContentsAsString;
 import static gitlet.Utils.readObject;
 import static gitlet.Utils.serialize;
 import static gitlet.Utils.writeContents;
+import static java.lang.Math.min;
 
 
 /** Class that represents the Branch object, a single object that stores
@@ -113,13 +115,32 @@ public class Branch implements Serializable {
             message("Cannot merge a branch with itself.");
             System.exit(0);
         }
-        Commit commitFirst = Commit.importCommit(branchMap.get(branchFirst));
-        Commit commitOther = Commit.importCommit(branchMap.get(branchOther));
+        Commit commitFirst = importCommit(branchMap.get(branchFirst));
+        Commit commitOther = importCommit(branchMap.get(branchOther));
         List<String> firstAncestors = new ArrayList<>();
         List<String> otherAncestors = new ArrayList<>();
-
         getAncestors(commitFirst, firstAncestors);
         getAncestors(commitOther, otherAncestors);
+        List<String> commonAncestors = new ArrayList<>();
+        for (String firstAncestorHash : firstAncestors) {
+            if (otherAncestors.contains(firstAncestorHash)) {
+                commonAncestors.add(firstAncestorHash);
+            }
+        }
+
+        int shortestCombinedPath = Integer.MAX_VALUE;
+        String shortestLCA = null;
+
+        for (String commonAncestorHash : commonAncestors) {
+            Commit commonAncestor = importCommit(commonAncestorHash);
+            int combinedPath = getShortestPath(commitFirst, commonAncestor, 0)
+                    + getShortestPath(commitOther, commonAncestor, 0);
+            if (combinedPath < shortestCombinedPath) {
+                shortestCombinedPath = combinedPath;
+                shortestLCA = commonAncestorHash;
+            }
+        }
+
 
         /*current = commitOther;
         while (current.hasParent()) {
@@ -130,10 +151,11 @@ public class Branch implements Serializable {
                 current = Commit.importCommit(current.getParentHash());
             }
         }*/
-        return latestCommonAncestor;
+        return shortestLCA;
     }
 
-    /** Mutates a list to contain all of COMMIT's ancestors. */
+    /** Mutates a list to contain all of COMMIT's ancestors by their SHA-1
+     * hash values. */
     private static void getAncestors(Commit commit,
                                       List<String> allAncestors) {
         if (commit.getParentHash() != null) {
@@ -148,16 +170,31 @@ public class Branch implements Serializable {
     /** Find and return shortest path between COMMIT and ANCESTOR. */
     private static int getShortestPath(Commit commit, Commit ancestor,
                                        int steps) {
-        if ()
-        return Math.min()
+        if (commit.equals(ancestor)) {
+            return steps;
+        }
+        if (commit.hasParent1() && commit.hasParent2()) {
+            return min(getShortestPath(commit.getParentCommit(),
+                    ancestor, steps + 1),
+                    getShortestPath(commit.getParent2Commit(),
+                    ancestor, steps + 1));
+        } else if (commit.hasParent1()) {
+            return getShortestPath(commit.getParentCommit(), ancestor,
+                    steps + 1);
+        } else if (commit.hasParent2()) {
+            return getShortestPath(commit.getParent2Commit(), ancestor,
+                    steps + 1);
+        } else {
+            return Integer.MAX_VALUE;
+        }
     }
 
     /** Returns whether Commit POTENTIALANCESTOR is an ancestor of Commit,
      * COMMITHASH. */
     public static boolean isAncestor(String potentialAncestor,
                                      String commitHash) {
-        Commit potentialCommit = Commit.importCommit(potentialAncestor);
-        Commit commit = Commit.importCommit(commitHash);
+        Commit potentialCommit = importCommit(potentialAncestor);
+        Commit commit = importCommit(commitHash);
         return false;
     }
 

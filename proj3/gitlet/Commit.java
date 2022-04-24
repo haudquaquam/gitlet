@@ -312,6 +312,10 @@ public class Commit implements Serializable {
         return processedMap;
     }
 
+    public boolean equals(Commit other) {
+        return Objects.equals(this.getHash(), other.getHash());
+    }
+
     /*private void processRemoveStage() {
         Commit parent1, parent2 = null;
 
