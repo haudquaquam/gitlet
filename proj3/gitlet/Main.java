@@ -733,7 +733,7 @@ public class Main {
                 "Merged " + givenBranch + " into " + currentBranch + ".";
 
         Commit newCommit = new Commit(mergeMsg, new Date(),
-                fetchHeadCommitHash());
+                currentCommitHash, givenCommitHash);
         updateActiveBranchWithLatestCommit(processCommit(newCommit));
 
 
