@@ -38,7 +38,7 @@ public class Blob implements Serializable {
             _fileContents = readContents(file);
         } else {
             _hash = null;
-            _fileContents = null;
+            _fileContents = new byte[]{};
         }
     }
 

@@ -23,7 +23,6 @@ import static gitlet.Commit.fileExistsInCommit;
 import static gitlet.Commit.fileModified;
 import static gitlet.Commit.findModifiedFiles;
 import static gitlet.Commit.findUntrackedFiles;
-import static gitlet.Commit.getDifferingFiles;
 import static gitlet.Commit.getFileHashFromName;
 import static gitlet.Commit.importCommit;
 import static gitlet.Commit.updateActiveBranchWithLatestCommit;
@@ -566,7 +565,7 @@ public class Main {
         Commit splitPointCommit = importCommit(latestCommonAncestor);
 
         // use getDifferingFiles to handle logic
-
+/*
         if (!givenCommit.equals(splitPointCommit)) {
             // there have been changes since splitpoint in given commit. they
             // are not the same commit.
@@ -583,7 +582,7 @@ public class Main {
                 splitPointCommit).isEmpty()) {
             // no changes in givencommit, but yes changes in currentcommit
             // do nothing?
-        }
+        }*/
 
         for (Map.Entry<String, String> entry
                 : givenCommit.getFilesMap().entrySet()) {
@@ -597,8 +596,8 @@ public class Main {
                         givenCommit)) {
                     // FILE HAS BEEN MODIFIED IN GIVENCOMMIT -> need to
                     // checkout file, then stage it
-                    checkoutFile(givenCommit, givenFileName);
-                    addBlob(importBlob(givenFileHash));
+                    handleMergeConflict(currentCommit, givenCommit, givenFileName);
+                    mergeConflict = true;
                     // import the current Blob, then stage it to be added
                 } else {
                     // FILE IS THE SAME BETWEEN SPLITPOINT AND GIVENCOMMIT ->
@@ -646,10 +645,26 @@ public class Main {
                 : currentCommit.getFilesMap().entrySet()) {
             String currentFileName = entry.getKey();
             String currentFileHash = entry.getValue();
+            /*if (!fileExistsInCommit(currentFileName, givenCommit)
+                    && fileExistsInCommit(currentFileName, splitPointCommit)) {
+                // FILE EXISTS IN CURRENT BUT REMOVED FROM GIVEN ->
+                // handle merge conflict
+
+            }*/
             if (fileExistsInCommit(currentFileName, splitPointCommit)
                     && !fileExistsInCommit(currentFileName, givenCommit)) {
-                File toBeRemoved = new File(CWD, currentFileName);
-                stageForRemoval(toBeRemoved);
+                // FILE EXISTS IN BOTH SPLITPOINT AND CURRENT, BUT NOT IN
+                // REMOVED
+                if (!fileModified(currentFileName, currentCommit,
+                        splitPointCommit)) {
+                    // FILE MODIFIED FROM SPLITPOINT -> merge conflict
+                    mergeConflict = true;
+                    handleMergeConflict(currentCommit, givenCommit,
+                            currentFileName);
+                } else {
+                    File toBeRemoved = new File(CWD, currentFileName);
+                    stageForRemoval(toBeRemoved);
+                }
             }
         }
 
@@ -662,7 +677,7 @@ public class Main {
          FAILURE CASE: attempting to merge branch with itself, error:
          "Cannot merge a branch with itself." */
 
-         /* FAILURE CASE: untracked file in current commit that would be
+        /* FAILURE CASE: untracked file in current commit that would be
          overwritten or deleted by merge, error:
          "There is an untracked file in the way; delete it, or
          add and commit it first." */
@@ -746,11 +761,8 @@ public class Main {
      *  FILENAME. This file must exist in both Commits. */
     public static void handleMergeConflict(Commit first, Commit other,
                                            String fileName) {
-
         File currentFile = new File(CWD, fileName);
-
-        Blob firstBlob;
-        Blob otherBlob;
+        Blob firstBlob, otherBlob;
         if (first.getFilesMap().containsKey(fileName)) {
             firstBlob = importBlob(first.getFilesMap().get(fileName));
         } else {
