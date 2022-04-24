@@ -116,8 +116,6 @@ public class Commit implements Serializable {
         }
         File commitFile = new File(COMMITS_FOLDER, commitHash);
         if (!commitFile.exists()) {
-            System.out.println(commitHash);
-            System.out.println(importBranches().getMap().get("master"));
             message("No commit with that id exists.");
             System.exit(0);
         }
