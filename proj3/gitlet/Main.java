@@ -750,22 +750,22 @@ public class Main {
         Blob firstBlob = importBlob(first.getFilesMap().get(fileName));
         Blob otherBlob = importBlob(other.getFilesMap().get(fileName));
 
-        String mergeContents = "<<<<<<< HEAD";
-        mergeContents += new String(firstBlob.getFileContents(),
-                StandardCharsets.UTF_8);
-        mergeContents += "=======";
-        mergeContents += new String(otherBlob.getFileContents(),
-                StandardCharsets.UTF_8);
-        mergeContents += ">>>>>>>";
+        String mergeContents = "<<<<<<< HEAD"
+                + new String(firstBlob.getFileContents(),
+                StandardCharsets.UTF_8) + "======="
+                + new String(otherBlob.getFileContents(),
+                StandardCharsets.UTF_8) + ">>>>>>>";
 
         File currentFile = new File(CWD, fileName);
         try {
+            currentFile.delete();
+            currentFile.createNewFile();
             PrintWriter out = new PrintWriter(currentFile);
             out.println(mergeContents);
         } catch (IOException e) {
             e.printStackTrace();
         }
-        addBlob(new Blob(currentFile));
+        stageForAddition(currentFile);
     }
 
     /** Returns a TreeMap of all files in the Current Working Directory. Maps
