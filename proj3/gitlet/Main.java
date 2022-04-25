@@ -18,6 +18,7 @@ import static gitlet.Branch.deleteBranch;
 import static gitlet.Branch.fetchActiveBranchName;
 import static gitlet.Branch.findLatestCommonAncestor;
 import static gitlet.Branch.importBranches;
+import static gitlet.Branch.isAncestor;
 import static gitlet.Branch.updateActiveBranch;
 import static gitlet.Commit.fileExistsInCommit;
 import static gitlet.Commit.fileModified;
@@ -546,7 +547,7 @@ public class Main {
         String latestCommonAncestor = findLatestCommonAncestor(givenBranch,
                 currentBranch);
 
-        if (latestCommonAncestor.equals(givenBranch)) {
+        if (isAncestor(givenCommitHash, currentCommitHash)) {
             message("Given branch is an ancestor of the current branch.");
             System.exit(0);
         } else if (latestCommonAncestor.equals(currentBranch)) {
@@ -563,23 +564,22 @@ public class Main {
         Commit givenCommit = importCommit(givenCommitHash);
         Commit currentCommit = importCommit(currentCommitHash);
         Commit splitPointCommit = importCommit(latestCommonAncestor);
-
+        List<String> givenFileNames =
+                new ArrayList<>(givenCommit.getFilesMap().keySet());
+        List<String> cwdFileNames = new ArrayList<>(getCWDFiles().keySet());
+        for (String fileName : givenFileNames) {
+            if (cwdFileNames.contains(fileName)) {
+                if (!currentCommit.getFilesMap().containsKey(fileName)) {
+                    message("There is an untracked file in the way; "
+                            + "delete it, or add and commit it first.");
+                    System.exit(0);
+                }
+            }
+        }
         for (Map.Entry<String, String> entry
                 : givenCommit.getFilesMap().entrySet()) {
             String givenFileName = entry.getKey();
             String givenFileHash = entry.getValue();
-            List<String> givenFileNames =
-                    new ArrayList<>(givenCommit.getFilesMap().keySet());
-            List<String> cwdFileNames = new ArrayList<>(getCWDFiles().keySet());
-            for (String fileName : givenFileNames) {
-                if (cwdFileNames.contains(fileName)) {
-                    if (!currentCommit.getFilesMap().containsKey(fileName)) {
-                        message("There is an untracked file in the way; "
-                                + "delete it, or add and commit it first.");
-                        System.exit(0);
-                    }
-                }
-            }
 
             if (fileExistsInCommit(givenFileName, splitPointCommit)
                     && !fileExistsInCommit(givenFileName, currentCommit)) {
@@ -614,8 +614,7 @@ public class Main {
                     && !fileExistsInCommit(givenFileName, currentCommit)) {
                 // FILE ONLY EXISTS IN GIVENCOMMIT -> CHECK OUT AND STAGE
                 checkoutFile(givenCommit, givenFileName);
-                addBlob(importBlob(givenFileHash));
-
+                stageForAddition(new File(CWD, givenFileName));
             } else if (!fileExistsInCommit(givenFileName, splitPointCommit)
                     && fileExistsInCommit(givenFileName, currentCommit)) {
                 // FILE EXISTS IN BOTH GIVENCOMMIT AND CURRENTCOMMIT, BUT NOT
@@ -633,21 +632,12 @@ public class Main {
                 }
             }
         }
-
-        for (Map.Entry<String, String> entry
-                : currentCommit.getFilesMap().entrySet()) {
-            String currentFileName = entry.getKey();
-            String currentFileHash = entry.getValue();
-            /*if (!fileExistsInCommit(currentFileName, givenCommit)
-                    && fileExistsInCommit(currentFileName, splitPointCommit)) {
-                // FILE EXISTS IN CURRENT BUT REMOVED FROM GIVEN ->
-                // handle merge conflict
-
-            }*/
+        for (String currentFileName
+                : currentCommit.getFilesMap().keySet()) {
             if (fileExistsInCommit(currentFileName, splitPointCommit)
                     && !fileExistsInCommit(currentFileName, givenCommit)) {
                 // FILE EXISTS IN BOTH SPLITPOINT AND CURRENT, BUT NOT IN
-                // REMOVED
+                // GIVEN
                 if (fileModified(currentFileName, currentCommit,
                         splitPointCommit)) {
                     // FILE MODIFIED FROM SPLITPOINT -> merge conflict
@@ -657,94 +647,15 @@ public class Main {
                 } else {
                     File toBeRemoved = new File(CWD, currentFileName);
                     stageForRemoval(toBeRemoved);
-                    restrictedDelete(toBeRemoved);
                 }
             }
         }
 
-        /* FAILURE CASE: if stages contain adds/removes, error with:
-         "You have uncommitted changes."
-
-         FAILURE CASE: if branch does not exist, error:
-         "A branch with that name does not exist."
-
-         FAILURE CASE: attempting to merge branch with itself, error:
-         "Cannot merge a branch with itself." */
-
-        /* FAILURE CASE: untracked file in current commit that would be
-         overwritten or deleted by merge, error:
-         "There is an untracked file in the way; delete it, or
-         add and commit it first." */
-
-        /* any files that have been modified in the GIVENBRANCH since the split
-         point,
-         but not modified in the CURRENTBRANCH since the split point should
-         be changed to their versions in the GIVENBRANCH. (checkout from
-         GIVENBRANCH's HEAD COMMIT) then, stage all of those files in
-         CURRENTBRANCH
-
-
-         any files modified in CURRENTBRANCH, but not in GIVENBRANCH should stay
-
-         any files modified in BOTH the CURRENTBRANCH and GIVENBRANCH in the
-         same way
-         (both have same content now, or both are removed), are not changed by
-         merge.
-
-         if file was removed from both CURRENTBRANCH and GIVENBRANCH, but file
-         of same
-         name exists in CWD, it is left alone and continues to be untracked in
-         the merge.
-
-         any files not in the split point, and only in the GIVENBRANCH should
-         be checked out and STAGED!
-
-         any files not present in the split point, and only exist in the
-         CURRENTBRANCH
-         should stay as they are
-
-         any files present at the split point, unchanged at the GIVENBRANCH,
-         and not
-         present in the CURRENTBRANCH should remain absent!
-
-         MERGE CONFLICTS: modified in DIFFERENT ways in CURRENTBRANCH and
-         GIVENBRANCH
-         contents are both changed from split point and differnt from each
-         other,
-         or the contents of one are changed, and the other file is deleted. OR
-         the file
-         is not in split point, and it has different contents in GIVENBRANCH and
-         CURRENTBRANCH
-         In any of these cases:
-         replace the contents of the conflicted file in CURRENTBRANCH with
-
-         <<<<<<< HEAD
-         contents of file in current branch
-         =======
-         contents of file in given branch
-         >>>>>>>
-
-         replace "contents of..." with the actual contents
-         then, stage this file (the result). if a file is deleted, make contents
-          empty.
-         use straight concatenation. don't worry about files with no newlines.
-         will
-         give strange output
-
-         AFTER ALL THE ABOVE: (if split point was not CURRENTBRANCH or
-         GIVENBRANCH)
-         commit in CURRENTBRANCH with the message:
-         "Merged [given branch name] into [current branch name]"
-         if there was a conflict , also PRINT the message:
-         "Encountered a merge conflict."*/
-
         String mergeMsg = "Merged " + givenBranch + " into " + currentBranch
                 + ".";
-
         Commit newCommit = new Commit(mergeMsg, new Date(),
                 currentCommitHash, givenCommitHash);
         updateActiveBranchWithLatestCommit(processCommit(newCommit));
-
         if (mergeConflict) {
             message("Encountered a merge conflict.");
         }

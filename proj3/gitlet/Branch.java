@@ -128,7 +128,7 @@ public class Branch implements Serializable {
         }
 
         int shortestCombinedPath = Integer.MAX_VALUE;
-        String shortestLCA = null;
+        String shortestLCA = "";
 
         for (String commonAncestorHash : commonAncestors) {
             Commit commonAncestor = importCommit(commonAncestorHash);
@@ -142,8 +142,8 @@ public class Branch implements Serializable {
         return shortestLCA;
     }
 
-    /** Mutates a list to contain all of COMMIT's ancestors by their SHA-1
-     * hash values. */
+    /** Mutates a list, ALLANCESTORS, to contain all of COMMIT's ancestors by
+     * their SHA-1 hash values. */
     private static void getAncestors(Commit commit,
                                       List<String> allAncestors) {
         allAncestors.add(commit.getHash());
@@ -155,7 +155,8 @@ public class Branch implements Serializable {
         }
     }
 
-    /** Find and return shortest path between COMMIT and ANCESTOR. */
+    /** Find and return shortest path of length STEPS between COMMIT and
+     * ANCESTOR. */
     private static int getShortestPath(Commit commit, Commit ancestor,
                                        int steps) {
         if (commit.equals(ancestor)) {
@@ -180,9 +181,9 @@ public class Branch implements Serializable {
      * COMMITHASH. */
     public static boolean isAncestor(String potentialAncestor,
                                      String commitHash) {
-        Commit potentialCommit = importCommit(potentialAncestor);
-        Commit commit = importCommit(commitHash);
-        return false;
+        List<String> ancestors = new ArrayList<>();
+        getAncestors(importCommit(commitHash), ancestors);
+        return ancestors.contains(potentialAncestor);
     }
 
 }
