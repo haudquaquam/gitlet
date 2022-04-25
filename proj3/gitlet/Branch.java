@@ -26,13 +26,18 @@ import static java.lang.Math.min;
 public class Branch implements Serializable {
 
     /** Map of all branches. */
-    public Map<String, String> _branchMap;
+    private Map<String, String> _branchMap;
 
     /** Returns a map representing all the branches in this object, mapping
      * branch name
      to the Commit that it is pointing to. */
     public Map<String, String> getMap() {
         return _branchMap;
+    }
+
+    /** Sets _branchMap to MAP. */
+    public void setMap(Map<String, String> map) {
+        _branchMap = map;
     }
 
     /** Given BRANCHNAME and COMMITHASH, creates a new Branch that is
