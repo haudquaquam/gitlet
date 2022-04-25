@@ -588,6 +588,20 @@ public class Main {
                 : givenCommit.getFilesMap().entrySet()) {
             String givenFileName = entry.getKey();
             String givenFileHash = entry.getValue();
+            List<String> desiredFileNames =
+                    new ArrayList<>(givenCommit.getFilesMap().keySet());
+            List<String> cwdFileNames = new ArrayList<>(getCWDFiles().keySet());
+            for (String fileName : desiredFileNames) {
+                if (cwdFileNames.contains(fileName)) {
+                    Blob blob = new Blob(new File(CWD, fileName));
+                    if (!currentCommit.contains(blob)) {
+                        message("There is an untracked file in the way; "
+                                + "delete it, or add and commit it first.");
+                        System.exit(0);
+                    }
+                }
+            }
+
             if (fileExistsInCommit(givenFileName, splitPointCommit)
                     && !fileExistsInCommit(givenFileName, currentCommit)) {
                 // FILE EXISTS IN GIVEN COMMIT AND SPLITPOINT, BUT NOT IN
