@@ -1,0 +1,18 @@
+# Acceptance test. Make sure things work.
+> init
+<<<
++ apple.txt a.txt
++ banana.txt b.txt
++ cheerio.txt c.txt
+> add apple.txt
+<<<
+> add banana.txt
+<<<
+> add cheerio.txt
+<<<
+> rm cheerio.txt
+<<<
+> commit "added apple.txt, banana.txt, cheerio.txt"
+<<<
+> branch firstBranch
+<<<
