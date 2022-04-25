@@ -603,9 +603,20 @@ public class Main {
                 if (fileModified(givenFileName, givenCommit, currentCommit)) {
                     // IF FILE IS DIFFERENT BETWEEN GIVEN AND CURRENT ->
                     // MERGE CONFLICT
-                    handleMergeConflict(currentCommit, givenCommit,
-                            givenFileName);
-                    mergeConflict = true;
+                    if (!fileModified(givenFileName, currentCommit,
+                            splitPointCommit)) {
+                        //only GIVENCOMMIT is modified file
+                        checkoutFile(givenCommit, givenFileName);
+                        stageForAddition(new File(CWD, givenFileName));
+                    } else if (!fileModified(givenFileName, givenCommit,
+                            splitPointCommit)) {
+                        //only current commit is modified -> do nothing
+                    }
+                    else {
+                        handleMergeConflict(currentCommit, givenCommit,
+                                givenFileName);
+                        mergeConflict = true;
+                    }
                 } else {
                     // FILES ARE MODIFIED IN THE SAME WAY IN GIVENCOMMIT AND
                     // CURRENTCOMMIT, SO DO NOTHING!
