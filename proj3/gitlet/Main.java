@@ -64,11 +64,6 @@ public class Main {
     public static final File ACTIVE_BRANCH_FILE =
             new File(GITLET_FOLDER, "HEAD_branch.txt");
 
-    /** File that holds BranchHead object that maps each branch to its
-     * current head commit. */
-    public static final File BRANCHHEAD_FILE =
-            new File(GITLET_FOLDER, "branch_head.txt");
-
     /** Folder that holds all Commit files. */
     public static final File COMMITS_FOLDER =
             new File(GITLET_FOLDER, "commits");
@@ -230,7 +225,6 @@ public class Main {
     public static void initializeRepo() {
         try {
             if (GITLET_FOLDER.mkdir()) {
-
                 HEAD_FILE.createNewFile();
                 BRANCHES_FILE.createNewFile();
                 COMMITS_FOLDER.mkdir();
@@ -238,7 +232,6 @@ public class Main {
                 ACTIVE_BRANCH_FILE.createNewFile();
                 ADD_STAGE_FILE.createNewFile();
                 REMOVE_STAGE_FILE.createNewFile();
-                BRANCHHEAD_FILE.createNewFile();
                 clearAddStage();
                 clearRemoveStage();
                 Date epoch = new Date(0);

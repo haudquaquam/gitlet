@@ -26,7 +26,7 @@ import static java.lang.Math.min;
 public class Branch implements Serializable {
 
     /** Map of all branches. */
-    private Map<String, String> _branchMap;
+    public Map<String, String> _branchMap;
 
     /** Returns a map representing all the branches in this object, mapping
      * branch name
