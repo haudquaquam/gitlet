@@ -6,13 +6,14 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.TreeMap;
 
 import static gitlet.Branch.isAncestor;
 import static gitlet.Commit.importCommit;
+import static gitlet.Main.BLOBS_FOLDER;
 import static gitlet.Main.COMMITS_FOLDER;
 import static gitlet.Main.GITLET_FOLDER;
+import static gitlet.Main.createBranch;
 import static gitlet.Main.fetchHeadCommitHash;
 import static gitlet.Utils.message;
 import static gitlet.Utils.plainFilenamesIn;
@@ -56,7 +57,7 @@ public class Remote implements Serializable {
     /** Add the Remote specified by REMOTENAME and REMOTEPATH to all of the
      * mappings. */
     public static void addRemote(String remoteName, String remotePath) {
-        remotePath = remotePath.replaceAll("/", File.separator);
+        remotePath = remotePath.replaceAll("//", File.separator);
         Remote newRemote = new Remote(remoteName, remotePath);
     }
 
@@ -72,6 +73,58 @@ public class Remote implements Serializable {
     }
 
     public static void fetchRemote(String remoteName, String remoteBranchName) {
+        checkRemoteNameExists(remoteName);
+        File remoteGitlet = new File(importRemote()._remoteNameToPathMap
+                .get(remoteName));
+        if (!remoteGitlet.exists()) {
+            message("Remote directory not found.");
+            System.exit(0);
+        }
+        File remoteCommitsFolder = new File(remoteGitlet, "commits");
+        File remoteBlobsFolder = new File(remoteCommitsFolder, "blobs");
+
+        List<String> commitsToBeCopied = new ArrayList<>();
+        List<String> blobsToBeCopied = new ArrayList<>();
+
+        // the following fills the above two lists with the commit hashes
+        // that go with the specified remote branch and the blob hashes that
+        // go with each of those commits
+        String remoteBranchCommitHash = getRemoteBranch(remoteName,
+                remoteBranchName);
+        Commit currentRemoteCommit = importRemoteCommit(remoteName,
+                remoteBranchCommitHash);
+        while (currentRemoteCommit.hasAnyParent()) {
+            commitsToBeCopied.add(currentRemoteCommit.getHash());
+            blobsToBeCopied.addAll(currentRemoteCommit.getFilesMap().values());
+            currentRemoteCommit = currentRemoteCommit.getParentCommit();
+        }
+
+        // copy over to local COMMITS_FOLDER and BLOBS_FOLDER
+
+        for (String commitHash : commitsToBeCopied) {
+            File remote = new File(remoteCommitsFolder, commitHash);
+            File local = new File(COMMITS_FOLDER, commitHash);
+            try {
+                local.createNewFile();
+                writeObject(local, readObject(remote, Commit.class));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        for (String blobHash : blobsToBeCopied) {
+            File remote = new File(remoteBlobsFolder, blobHash);
+            File local = new File(BLOBS_FOLDER, blobHash);
+            try {
+                local.createNewFile();
+                writeObject(local, readObject(remote, Blob.class));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        createBranch(remoteName + "/" + remoteBranchName,
+                remoteBranchCommitHash);
+
     }
 
     public static void pullRemote(String remoteName, String remoteBranchName) {
@@ -83,7 +136,7 @@ public class Remote implements Serializable {
     public static void pushRemote(String remoteName, String remoteBranchName) {
         checkRemoteNameExists(remoteName);
     // ensure the remoteBranch is an ancestor of current branch
-        String remoteBranchCommitHash = fetchRemoteBranch(remoteName,
+        String remoteBranchCommitHash = getRemoteBranch(remoteName,
                 remoteBranchName);
         String currentCommitHash = fetchHeadCommitHash();
         if (!isAncestor(remoteBranchCommitHash, currentCommitHash)) {
@@ -92,8 +145,7 @@ public class Remote implements Serializable {
         }
         Commit current = importCommit(currentCommitHash);
         List<String> listOfCommitsToBeCopied = new ArrayList<>();
-        while (current.hasAnyParent() && !(Objects.equals
-                (current.getParentHash(), remoteBranchCommitHash))) {
+        while (current.hasAnyParent()) {
             listOfCommitsToBeCopied.add(current.getHash());
             current = current.getParentCommit();
         }
@@ -117,7 +169,8 @@ public class Remote implements Serializable {
             }
         }
 
-        File remoteHeadFile = new File(remoteCommitsFolder, "HEAD.txt");
+        File remoteHeadFile = new File(importRemote()._remoteNameToPathMap
+                .get(remoteName), "HEAD.txt");
         writeObject(remoteHeadFile, importCommit(currentCommitHash));
 
         updateRemoteBranch(remoteName, remoteBranchName, currentCommitHash);
@@ -136,8 +189,8 @@ public class Remote implements Serializable {
     /** Given the Remote specified by REMOTENAME, return the String hash of
      * the Commit that the Branch, specified by REMOTEBRANCHNAME, is pointing
      * to. */
-    private static String fetchRemoteBranch(String remoteName,
-                                     String remoteBranchName) {
+    private static String getRemoteBranch(String remoteName,
+                                          String remoteBranchName) {
         checkRemoteNameExists(remoteName);
         File remoteGitlet = new File(importRemote()._remoteNameToPathMap
                 .get(remoteName));
@@ -147,6 +200,10 @@ public class Remote implements Serializable {
         }
         File branchFile = new File(remoteGitlet,"branches.txt");
         Branch branches = readObject(branchFile, Branch.class);
+        if (!branches.getMap().containsKey(remoteBranchName)) {
+            message("That remote does not have that branch.");
+            System.exit(0);
+        }
         return branches.getMap().get(remoteBranchName);
     }
 
@@ -173,5 +230,21 @@ public class Remote implements Serializable {
             message("A remote with that name does not exist.");
             System.exit(0);
         }
+    }
+
+    /** Returns commit with specified COMMITHASH from specified REMOTENAME
+     * Remote repository. */
+    private static Commit importRemoteCommit(String remoteName,
+                                             String commitHash) {
+        File commitsFolder = new File(importRemote()._remoteNameToPathMap
+                .get(remoteName), "commits");
+        File commitFile = new File(commitsFolder, commitHash);
+        if (!commitFile.exists()) {
+            System.out.println(plainFilenamesIn(commitsFolder));
+            message("No commit with that id exists: " + commitHash + " remote" +
+                    " name: " + remoteName);
+            System.exit(0);
+        }
+        return readObject(commitFile, Commit.class);
     }
 }
