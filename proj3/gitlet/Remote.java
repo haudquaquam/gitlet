@@ -21,6 +21,10 @@ import static gitlet.Utils.plainFilenamesIn;
 import static gitlet.Utils.readObject;
 import static gitlet.Utils.writeObject;
 
+
+/** Class that represents and deals with Remote repository behavior.
+ * @author Rae Xin
+ * */
 public class Remote implements Serializable {
 
     /** Remote repository file that stores mappings from Remote name to the
