@@ -564,37 +564,16 @@ public class Main {
         Commit currentCommit = importCommit(currentCommitHash);
         Commit splitPointCommit = importCommit(latestCommonAncestor);
 
-        // use getDifferingFiles to handle logic
-/*
-        if (!givenCommit.equals(splitPointCommit)) {
-            // there have been changes since splitpoint in given commit. they
-            // are not the same commit.
-            if (!currentCommit.equals(splitPointCommit)
-                    && !currentCommit.equals(givenCommit)) {
-                // there have been changes since splitpoint in current commit
-                // in addition to changes in given commit. and ensure that
-                // current commit is not equal to given commit.
-                // merge conflict
-            } else {
-                checkoutBranch(givenBranch);
-            }
-        } else if (!getDifferingFiles(currentCommit,
-                splitPointCommit).isEmpty()) {
-            // no changes in givencommit, but yes changes in currentcommit
-            // do nothing?
-        }*/
-
         for (Map.Entry<String, String> entry
                 : givenCommit.getFilesMap().entrySet()) {
             String givenFileName = entry.getKey();
             String givenFileHash = entry.getValue();
-            List<String> desiredFileNames =
+            List<String> givenFileNames =
                     new ArrayList<>(givenCommit.getFilesMap().keySet());
             List<String> cwdFileNames = new ArrayList<>(getCWDFiles().keySet());
-            for (String fileName : desiredFileNames) {
+            for (String fileName : givenFileNames) {
                 if (cwdFileNames.contains(fileName)) {
-                    Blob blob = new Blob(new File(CWD, fileName));
-                    if (!currentCommit.contains(blob)) {
+                    if (!currentCommit.getFilesMap().containsKey(fileName)) {
                         message("There is an untracked file in the way; "
                                 + "delete it, or add and commit it first.");
                         System.exit(0);
@@ -678,6 +657,7 @@ public class Main {
                 } else {
                     File toBeRemoved = new File(CWD, currentFileName);
                     stageForRemoval(toBeRemoved);
+                    restrictedDelete(toBeRemoved);
                 }
             }
         }

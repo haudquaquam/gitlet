@@ -139,15 +139,6 @@ public class Branch implements Serializable {
                 shortestLCA = commonAncestorHash;
             }
         }
-        /*current = commitOther;
-        while (current.hasParent()) {
-            if (firstAncestors.contains(current.getHash())) {
-                latestCommonAncestor = current.getHash();
-                break;
-            } else {
-                current = Commit.importCommit(current.getParentHash());
-            }
-        }*/
         return shortestLCA;
     }
 
@@ -155,13 +146,13 @@ public class Branch implements Serializable {
      * hash values. */
     private static void getAncestors(Commit commit,
                                       List<String> allAncestors) {
+        allAncestors.add(commit.getHash());
         if (commit.getParentHash() != null) {
             getAncestors(commit.getParentCommit(), allAncestors);
         }
         if (commit.getParent2Hash() != null) {
             getAncestors(commit.getParent2Commit(), allAncestors);
         }
-        allAncestors.add(commit.getHash());
     }
 
     /** Find and return shortest path between COMMIT and ANCESTOR. */
@@ -169,8 +160,7 @@ public class Branch implements Serializable {
                                        int steps) {
         if (commit.equals(ancestor)) {
             return steps;
-        }
-        if (commit.hasParent1() && commit.hasParent2()) {
+        } else if (commit.hasParent1() && commit.hasParent2()) {
             return min(getShortestPath(commit.getParentCommit(),
                     ancestor, steps + 1),
                     getShortestPath(commit.getParent2Commit(),
