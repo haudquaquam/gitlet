@@ -1,0 +1,33 @@
+# Checking my status after multiple adds
+I setup1.inc
++ d.txt wug.txt
+> add d.txt
+<<<
++ e.txt wug.txt
+> add e.txt
+<<<
++ h.txt wug.txt
+> add h.txt
+<<<
++ wug.txt wug.txt
+> add wug.txt
+<<<
+> status
+=== Branches ===
+*master
+
+=== Staged Files ===
+d.txt
+e.txt
+f.txt
+g.txt
+h.txt
+wug.txt
+
+=== Removed Files ===
+
+=== Modifications Not Staged For Commit ===
+
+=== Untracked Files ===
+
+<<<
