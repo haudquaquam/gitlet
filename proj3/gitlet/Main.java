@@ -27,6 +27,11 @@ import static gitlet.Commit.findUntrackedFiles;
 import static gitlet.Commit.getFileHashFromName;
 import static gitlet.Commit.importCommit;
 import static gitlet.Commit.updateActiveBranchWithLatestCommit;
+import static gitlet.Remote.addRemote;
+import static gitlet.Remote.fetchRemote;
+import static gitlet.Remote.pullRemote;
+import static gitlet.Remote.pushRemote;
+import static gitlet.Remote.removeRemote;
 import static gitlet.Stage.addBlob;
 import static gitlet.Stage.removeBlob;
 import static gitlet.Utils.message;
@@ -45,8 +50,7 @@ public class Main {
     public static final File CWD = new File(System.getProperty("user.dir"));
 
     /** Main metadata folder. */
-    public static final File GITLET_FOLDER =
-            new File(CWD, ".gitlet");
+    public static final File GITLET_FOLDER = new File(CWD, ".gitlet");
 
     /** HEAD text file that stores HEAD pointer to current commit. */
     public static final File HEAD_FILE =
@@ -93,51 +97,53 @@ public class Main {
         switch (args[0]) {
         case "init":
             validateArgs(args, 1, 1);
-            initializeRepo();
-            break;
+            initializeRepo(); break;
         case "commit":
-            mainCommit(args);
-            break;
+            mainCommit(args); break;
         case "add":
-            mainAdd(args);
-            break;
+            mainAdd(args); break;
         case "rm":
-            mainRemove(args);
-            break;
+            mainRemove(args); break;
         case "log":
             validateArgs(args, 1, 1);
-            displayLog();
-            break;
+            displayLog(); break;
         case "global-log":
             validateArgs(args, 1, 1);
-            displayGlobalLog();
-            break;
+            displayGlobalLog(); break;
         case "find":
             validateArgs(args, 2, 2);
-            findAllCommitsByMessage(args[1]);
-            break;
+            findAllCommitsByMessage(args[1]); break;
         case "status":
-            mainStatus(args);
-            break;
+            mainStatus(args); break;
         case "checkout":
-            mainCheckout(args);
-            break;
+            mainCheckout(args); break;
         case "branch":
             validateArgs(args, 2, 2);
-            createBranch(args[1], fetchHeadCommitHash());
-            break;
+            createBranch(args[1], fetchHeadCommitHash()); break;
         case "rm-branch":
             validateArgs(args, 2, 2);
-            deleteBranch(args[1]);
-            break;
+            deleteBranch(args[1]); break;
         case "reset":
             validateArgs(args, 2, 2);
-            reset(args[1]);
-            break;
+            reset(args[1]); break;
         case "merge":
             validateArgs(args, 2, 2);
-            merge(args[1]);
-            break;
+            merge(args[1]); break;
+        case "add-remote":
+            validateArgs(args, 3, 3);
+            addRemote(args[1], args[2]); break;
+        case "rm-remote":
+            validateArgs(args, 2, 2);
+            removeRemote(args[1]); break;
+        case "push":
+            validateArgs(args, 3, 3);
+            pushRemote(args[1], args[2]); break;
+        case "fetch":
+            validateArgs(args, 3, 3);
+            fetchRemote(args[1], args[2]); break;
+        case "pull":
+            validateArgs(args, 3, 3);
+            pullRemote(args[1], args[2]); break;
         default:
             message("No command with that name exists.");
             System.exit(0);
