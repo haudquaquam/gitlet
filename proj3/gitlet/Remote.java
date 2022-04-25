@@ -8,13 +8,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import static gitlet.Branch.importBranches;
 import static gitlet.Branch.isAncestor;
 import static gitlet.Commit.importCommit;
 import static gitlet.Main.BLOBS_FOLDER;
 import static gitlet.Main.COMMITS_FOLDER;
 import static gitlet.Main.GITLET_FOLDER;
-import static gitlet.Main.createBranch;
 import static gitlet.Main.fetchHeadCommitHash;
+import static gitlet.Main.merge;
 import static gitlet.Utils.message;
 import static gitlet.Utils.plainFilenamesIn;
 import static gitlet.Utils.readObject;
@@ -122,12 +123,17 @@ public class Remote implements Serializable {
             }
         }
 
-        createBranch(remoteName + "/" + remoteBranchName,
-                remoteBranchCommitHash);
+        Branch branches = importBranches();
+        var map = branches.getMap();
+        map.put(remoteName + "/" + remoteBranchName, remoteBranchCommitHash);
+        branches._branchMap = map;
+        branches.exportBranch();
 
     }
 
     public static void pullRemote(String remoteName, String remoteBranchName) {
+        fetchRemote(remoteName, remoteBranchName);
+        merge(remoteName + "/" + remoteBranchName);
     }
 
     /** Given Remote, specified by REMOTENAME, add the current branch's
