@@ -550,7 +550,7 @@ public class Main {
         if (isAncestor(givenCommitHash, currentCommitHash)) {
             message("Given branch is an ancestor of the current branch.");
             System.exit(0);
-        } else if (latestCommonAncestor.equals(currentBranch)) {
+        } else if (latestCommonAncestor.equals(currentCommitHash)) {
             checkoutBranch(givenBranch);
             message("Current branch fast-forwarded.");
             System.exit(0);
