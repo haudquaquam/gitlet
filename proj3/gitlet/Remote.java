@@ -56,8 +56,14 @@ public class Remote implements Serializable {
      * mapping. */
     public static void removeRemote(String remoteName) {
         Remote updatedRemote = importRemote();
-        updatedRemote._remoteNameToPathMap.remove(remoteName);
-        updatedRemote.exportRemote();
+        var map = updatedRemote._remoteNameToPathMap;
+        if (!map.containsKey(remoteName)) {
+            message("A remote with that name does not exist.");
+        } else {
+            map.remove(remoteName);
+            updatedRemote._remoteNameToPathMap = map;
+            updatedRemote.exportRemote();
+        }
     }
 
     public static void fetchRemote(String remoteName, String remoteBranchName) {
