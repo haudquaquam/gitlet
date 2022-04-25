@@ -92,120 +92,130 @@ public class Main {
         }
         switch (args[0]) {
         case "init":
+            validateArgs(args, 1, 1);
             initializeRepo();
             break;
         case "commit":
-            if (!(args.length > 1)) {
-                message("Please enter a commit message.");
-                System.exit(0);
-            }
-            Commit newCommit = new Commit(args[1], new Date(),
-                    fetchHeadCommitHash());
-            if (!newCommit.validCommit()) {
-                message("No changes added to the commit.");
-                System.exit(0);
-            } else {
-                updateActiveBranchWithLatestCommit(processCommit(newCommit));
-            }
+            mainCommit(args);
             break;
         case "add":
-            if (args.length != 2) {
-                message("Incorrect operands.");
-                System.exit(0);
-            }
-            File addFile = new File(CWD, args[1]);
-            if (!addFile.exists()) {
-                message("File does not exist.");
-                System.exit(0);
-            }
-            stageForAddition(addFile);
+            mainAdd(args);
             break;
         case "rm":
-            if (args.length != 2) {
-                message("Incorrect operands.");
-                System.exit(0);
-            }
-            File removeFile = new File(CWD, args[1]);
-            stageForRemoval(removeFile);
+            mainRemove(args);
             break;
         case "log":
-            if (args.length > 1) {
-                message("Incorrect operands.");
-                System.exit(0);
-            }
+            validateArgs(args, 1, 1);
             displayLog();
             break;
         case "global-log":
-            if (args.length > 1) {
-                message("Incorrect operands.");
-                System.exit(0);
-            }
+            validateArgs(args, 1, 1);
             displayGlobalLog();
             break;
         case "find":
-            if (args.length != 2) {
-                message("Incorrect operands.");
-                System.exit(0);
-            }
+            validateArgs(args, 2, 2);
             findAllCommitsByMessage(args[1]);
             break;
         case "status":
-            if (args.length > 1) {
-                message("Incorrect operands.");
-                System.exit(0);
-            }
-            if (!GITLET_FOLDER.exists()) {
-                message("Not in an initialized Gitlet directory.");
-                System.exit(0);
-            }
-            displayStatus();
+            mainStatus(args);
             break;
         case "checkout":
-            if (args.length < 2 || args.length > 4) {
-                message("Incorrect operands.");
-                System.exit(0);
-            }
-            if (args.length == 3 && args[1].equals("--")) {
-                checkoutFile(fetchHeadCommit(), args[2]);
-            } else if (args.length == 4 && args[2].equals("--")) {
-                checkoutFile(importCommit(args[1]), args[3]);
-            } else if (args.length == 2) {
-                checkoutBranch(args[1]);
-            } else {
-                message("Incorrect operands.");
-                System.exit(0);
-            }
+            mainCheckout(args);
             break;
         case "branch":
-            if (args.length != 2) {
-                message("Incorrect operands.");
-                System.exit(0);
-            }
+            validateArgs(args, 2, 2);
             createBranch(args[1], fetchHeadCommitHash());
             break;
         case "rm-branch":
-            if (args.length != 2) {
-                message("Incorrect operands.");
-                System.exit(0);
-            }
+            validateArgs(args, 2, 2);
             deleteBranch(args[1]);
             break;
         case "reset":
-            if (args.length != 2) {
-                message("Incorrect operands.");
-                System.exit(0);
-            }
+            validateArgs(args, 2, 2);
             reset(args[1]);
             break;
         case "merge":
-            if (args.length != 2) {
-                message("Incorrect operands.");
-                System.exit(0);
-            }
+            validateArgs(args, 2, 2);
             merge(args[1]);
             break;
         default:
             message("No command with that name exists.");
+            System.exit(0);
+        }
+    }
+
+    /** Takes in ARGS and handles status behavior. Should only be called once
+     *  from main() in Main.java. This function exists solely to shorten line
+     *  count of main() method for 61B style check. */
+    private static void mainStatus(String[] args) {
+        validateArgs(args, 1, 1);
+        if (!GITLET_FOLDER.exists()) {
+            message("Not in an initialized Gitlet directory.");
+            System.exit(0);
+        }
+        displayStatus();
+    }
+
+    /** Takes in ARGS and handles remove behavior. Should only be called once
+     *  from main() in Main.java. This function exists solely to shorten line
+     *  count of main() method for 61B style check. */
+    private static void mainRemove(String[] args) {
+        validateArgs(args, 2, 2);
+        File removeFile = new File(CWD, args[1]);
+        stageForRemoval(removeFile);
+    }
+
+    /** Takes in ARGS and handles add behavior. Should only be called once
+     *  from main() in Main.java. This function exists solely to shorten line
+     *  count of main() method for 61B style check. */
+    private static void mainAdd(String[] args) {
+        validateArgs(args, 2, 2);
+        File addFile = new File(CWD, args[1]);
+        if (!addFile.exists()) {
+            message("File does not exist.");
+            System.exit(0);
+        }
+        stageForAddition(addFile);
+    }
+
+    /** Takes in ARGS and handles checkout behavior. Should only be called once
+     *  from main() in Main.java. This function exists solely to shorten line
+     *  count of main() method for 61B style check. */
+    private static void mainCheckout(String[] args) {
+        validateArgs(args, 2, 4);
+        if (args.length == 3 && args[1].equals("--")) {
+            checkoutFile(fetchHeadCommit(), args[2]);
+        } else if (args.length == 4 && args[2].equals("--")) {
+            checkoutFile(importCommit(args[1]), args[3]);
+        } else if (args.length == 2) {
+            checkoutBranch(args[1]);
+        } else {
+            message("Incorrect operands.");
+            System.exit(0);
+        }
+    }
+
+    /** Takes in ARGS and handles Commit behavior. Should only be called once
+     *  from main() in Main.java. This function exists solely to shorten line
+     *  count of main() method for 61B style check. */
+    private static void mainCommit(String[] args) {
+        validateArgs(args, 2, 2);
+        Commit newCommit = new Commit(args[1], new Date(),
+                fetchHeadCommitHash());
+        if (!newCommit.validCommit()) {
+            message("No changes added to the commit.");
+            System.exit(0);
+        } else {
+            updateActiveBranchWithLatestCommit(processCommit(newCommit));
+        }
+    }
+
+    /** Exits with Incorrect Operands message if the length of ARGS is not
+     * between LOWERBOUND and UPPERBOUND, inclusive. */
+    private static void validateArgs(String[] args, int lowerBound,
+                                     int upperBound) {
+        if (args.length > upperBound || args.length < lowerBound) {
+            message("Incorrect operands.");
             System.exit(0);
         }
     }
@@ -459,11 +469,6 @@ public class Main {
             desiredCommit = importCommit(branchesMap.get(branchName));
         }
         Map<String, String> cwdFiles = getCWDFiles();
-
-         /*take all files in DESIREDCOMMIT and put them in CWD, overwriting
-         the versions of the files that are already there if they exist.
-         but first check that all filenames in DESIREDCOMMIT that exist
-         in CWD are tracked and not modified if tracked*/
         for (Map.Entry<String, String> en : cwdFiles.entrySet()) {
             if (desiredCommit.getFilesMap().containsKey(en.getKey())) {
                 if (!oldCommit.getFilesMap().containsValue(en.getValue())) {
@@ -477,9 +482,6 @@ public class Main {
             }
         }
         for (String fileName : oldCommit.getFilesMap().keySet()) {
-            /* any files that are tracked in the current branch but are not
-             present in the checked-out branch are deleted. deletes all
-             files in the current branch that do not exist in desired commit*/
             if (cwdFiles.containsKey(fileName)) {
                 File toBeDeleted = new File(CWD, fileName);
                 restrictedDelete(toBeDeleted);
@@ -533,7 +535,6 @@ public class Main {
         Branch branches = importBranches();
         var branchMap = branches.getMap();
         var currentBranch = fetchActiveBranchName();
-        /* Handle some failure cases. */
         if (!branchMap.containsKey(givenBranch)) {
             message("A branch with that name does not exist.");
             System.exit(0);
@@ -559,8 +560,8 @@ public class Main {
             message("You have uncommitted changes.");
             System.exit(0);
         }
-        clearRemoveStage(); // should be redundant
-        clearAddStage(); //    should be redundant
+        clearRemoveStage();
+        clearAddStage();
         Commit givenCommit = importCommit(givenCommitHash);
         Commit currentCommit = importCommit(currentCommitHash);
         Commit splitPointCommit = importCommit(latestCommonAncestor);
@@ -576,70 +577,57 @@ public class Main {
                 }
             }
         }
+        mergeConflict = mergeLogicStyle(givenCommit, currentCommit,
+                splitPointCommit);
+        String mergeMsg = "Merged " + givenBranch + " into " + currentBranch
+                + ".";
+        Commit newCommit = new Commit(mergeMsg, new Date(),
+                currentCommitHash, givenCommitHash);
+        updateActiveBranchWithLatestCommit(processCommit(newCommit));
+        if (mergeConflict) {
+            message("Encountered a merge conflict.");
+        }
+    }
+
+    private static boolean mergeLogicStyle(Commit givenCommit,
+                                        Commit currentCommit, Commit
+                                                   splitPointCommit) {
+        boolean mergeConflict = false;
         for (Map.Entry<String, String> entry
                 : givenCommit.getFilesMap().entrySet()) {
             String givenFileName = entry.getKey();
-            String givenFileHash = entry.getValue();
-
             if (fileExistsInCommit(givenFileName, splitPointCommit)
                     && !fileExistsInCommit(givenFileName, currentCommit)) {
-                // FILE EXISTS IN GIVEN COMMIT AND SPLITPOINT, BUT NOT IN
-                // CURRENTCOMMIT
                 if (fileModified(givenFileName, splitPointCommit,
                         givenCommit)) {
-                    // FILE HAS BEEN MODIFIED IN GIVENCOMMIT -> need to
-                    // checkout file, then stage it
-                    handleMergeConflict(currentCommit, givenCommit, givenFileName);
+                    handleMergeConflict(currentCommit, givenCommit,
+                            givenFileName);
                     mergeConflict = true;
-                    // import the current Blob, then stage it to be added
-                } else {
-                    // FILE IS THE SAME BETWEEN SPLITPOINT AND GIVENCOMMIT ->
-                    // do nothing!
                 }
             } else if (fileExistsInCommit(givenFileName, splitPointCommit)
                     && fileExistsInCommit(givenFileName, currentCommit)) {
-                // FILE EXISTS IN ALL SPLITPOINT, GIVENCOMMIT, AND
-                // CURRENTCOMMIT
                 if (fileModified(givenFileName, givenCommit, currentCommit)) {
-                    // IF FILE IS DIFFERENT BETWEEN GIVEN AND CURRENT ->
-                    // MERGE CONFLICT
                     if (!fileModified(givenFileName, currentCommit,
                             splitPointCommit)) {
-                        //only GIVENCOMMIT is modified file
                         checkoutFile(givenCommit, givenFileName);
                         stageForAddition(new File(CWD, givenFileName));
-                    } else if (!fileModified(givenFileName, givenCommit,
+                    } else if (fileModified(givenFileName, givenCommit,
                             splitPointCommit)) {
-                        //only current commit is modified -> do nothing
-                    }
-                    else {
                         handleMergeConflict(currentCommit, givenCommit,
                                 givenFileName);
                         mergeConflict = true;
                     }
-                } else {
-                    // FILES ARE MODIFIED IN THE SAME WAY IN GIVENCOMMIT AND
-                    // CURRENTCOMMIT, SO DO NOTHING!
                 }
             } else if (!fileExistsInCommit(givenFileName, splitPointCommit)
                     && !fileExistsInCommit(givenFileName, currentCommit)) {
-                // FILE ONLY EXISTS IN GIVENCOMMIT -> CHECK OUT AND STAGE
                 checkoutFile(givenCommit, givenFileName);
                 stageForAddition(new File(CWD, givenFileName));
             } else if (!fileExistsInCommit(givenFileName, splitPointCommit)
                     && fileExistsInCommit(givenFileName, currentCommit)) {
-                // FILE EXISTS IN BOTH GIVENCOMMIT AND CURRENTCOMMIT, BUT NOT
-                // IN SPLITPOINT -> CHECK TO SEE IF THEY ARE MODIFIED IN THE
-                // SAME WAY. OTHERWISE WE HAVE MERGE CONFLICT.
                 if (fileModified(givenFileName, givenCommit, currentCommit)) {
-                    // IF FILE IS DIFFERENT BETWEEN GIVEN AND CURRENT ->
-                    // MERGE CONFLICT
                     handleMergeConflict(currentCommit, givenCommit,
                             givenFileName);
                     mergeConflict = true;
-                } else {
-                    // FILES ARE MODIFIED IN THE SAME WAY IN GIVENCOMMIT AND
-                    // CURRENTCOMMIT, SO DO NOTHING!
                 }
             }
         }
@@ -647,11 +635,8 @@ public class Main {
                 : currentCommit.getFilesMap().keySet()) {
             if (fileExistsInCommit(currentFileName, splitPointCommit)
                     && !fileExistsInCommit(currentFileName, givenCommit)) {
-                // FILE EXISTS IN BOTH SPLITPOINT AND CURRENT, BUT NOT IN
-                // GIVEN
                 if (fileModified(currentFileName, currentCommit,
                         splitPointCommit)) {
-                    // FILE MODIFIED FROM SPLITPOINT -> merge conflict
                     mergeConflict = true;
                     handleMergeConflict(currentCommit, givenCommit,
                             currentFileName);
@@ -661,16 +646,7 @@ public class Main {
                 }
             }
         }
-
-        String mergeMsg = "Merged " + givenBranch + " into " + currentBranch
-                + ".";
-        Commit newCommit = new Commit(mergeMsg, new Date(),
-                currentCommitHash, givenCommitHash);
-        updateActiveBranchWithLatestCommit(processCommit(newCommit));
-        if (mergeConflict) {
-            message("Encountered a merge conflict.");
-        }
-
+        return mergeConflict;
     }
 
     /** Handles Merge Conflict between FIRST and OTHER for the file with name

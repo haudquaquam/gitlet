@@ -83,7 +83,7 @@ public class Blob implements Serializable {
         }
     }
 
-    /** Retrieves a Blob object with specified SHA-1 HASH. */
+    /** Returns a Blob object with specified SHA-1 HASH. */
     public static Blob importBlob(String hash) {
         File blobFile = new File(BLOBS_FOLDER, hash);
         return readObject(blobFile, Blob.class);

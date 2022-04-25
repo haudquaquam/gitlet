@@ -317,32 +317,6 @@ public class Commit implements Serializable {
         return Objects.equals(this.getHash(), other.getHash());
     }
 
-    /** Returns Map of the filenames to their hashes for files that are
-     * different between FIRST and OTHER. */
-    public static Map<String, String> getDifferingFiles(Commit first,
-                                                        Commit other) {
-        Map<String, String> differingFiles = new TreeMap<>();
-        var firstMap = first.getFilesMap();
-        var otherMap = other.getFilesMap();
-        for (Map.Entry<String, String> entry : firstMap.entrySet()) {
-            var key = entry.getKey();
-            var value = entry.getValue();
-            if (otherMap.containsKey(key)) {
-                if (!otherMap.get(key).equals(value)) {
-                    differingFiles.put(key, value);
-                }
-                otherMap.remove(key);
-            } else {
-                differingFiles.put(key, value);
-            }
-        }
-        /* Algo: Go through all first map, check against othermap. if other
-        map overlaps, remove key/val pair from othermap. then the remaining
-        in othermap is not in first map. add all to differing. */
-        differingFiles.putAll(otherMap);
-        return differingFiles;
-    }
-
     /** Returns whether FILENAME exists in COMMIT. */
     public static boolean fileExistsInCommit(String fileName, Commit commit) {
         return commit._commitMap.containsKey(fileName);
@@ -358,19 +332,4 @@ public class Commit implements Serializable {
         String hash2 = other.getFilesMap().get(fileName);
         return !hash.equals(hash2);
     }
-
-    /*private void processRemoveStage() {
-        Commit parent1, parent2 = null;
-
-        if (_commitMap.get(PARENT_STR) != null) {
-            parent1 = importCommit(_commitMap.get(PARENT_STR));
-            for (Map.Entry<String, String> entry
-            : parent1._commitMap.entrySet()) {
-                if (!defaultKeys.contains(entry.getKey())) {
-                    _commitMap.put(entry.getKey(), entry.getValue());
-                }
-            }
-            _commitMap.putAll(_addStage.getStage());
-        }
-    }*/
 }
